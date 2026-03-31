@@ -3,44 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Win100 | Higher Lower Elite</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;900&display=swap" rel="stylesheet">
+    <title>Win100 | Hi-Lo Mobile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        :root { --gold: #d4af37; --bg: #050505; --card: #1a1a1a; }
+        :root { --gold: #d4af37; --bg: #050505; --card-bg: #1a1a1a; }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: white; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
-
-        .header { padding: 15px; display: flex; justify-content: space-between; background: #000; border-bottom: 1px solid #222; }
-        .bal { color: var(--gold); font-weight: 900; border: 1px solid var(--gold); padding: 2px 10px; border-radius: 15px; }
-
-        /* منطقة الكروت */
-        #game-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
-        .card-display { 
-            width: 150px; height: 220px; background: white; border-radius: 15px; 
-            display: flex; align-items: center; justify-content: center; 
-            font-size: 80px; font-weight: 900; color: #000;
-            box-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
-            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        
+        body { 
+            font-family: 'Cairo', sans-serif; background: var(--bg); color: white; 
+            height: 100dvh; display: flex; flex-direction: column; overflow: hidden; 
         }
-        .multiplier-tag { font-size: 24px; color: var(--gold); font-weight: 900; }
 
-        /* التحكم */
-        .controls { background: #111; padding: 20px; border-top: 1px solid #333; border-radius: 25px 25px 0 0; }
-        .bet-input { width: 100%; background: #000; border: 1px solid #333; color: var(--gold); padding: 12px; border-radius: 10px; text-align: center; font-weight: 900; margin-bottom: 15px; }
-        .btn-group { display: flex; gap: 10px; }
-        .btn { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: 900; font-size: 18px; cursor: pointer; }
-        .up { background: #00ff88; color: #000; }
-        .down { background: #ff4d4d; color: #fff; }
-        .cash { background: var(--gold); color: #000; width: 100%; margin-top: 10px; display: none; }
-        .start-btn { background: var(--gold); color: #000; width: 100%; }
+        /* هيدر ثابت */
+        .header { 
+            height: 60px; padding: 0 15px; display: flex; justify-content: space-between; 
+            align-items: center; background: #000; border-bottom: 1px solid #222; flex-shrink: 0;
+        }
+        .bal { color: var(--gold); font-weight: 900; border: 1px solid var(--gold); padding: 4px 12px; border-radius: 12px; font-size: 14px; }
+
+        /* منطقة اللعب - مرنة */
+        #game-area { 
+            flex: 1; display: flex; flex-direction: column; align-items: center; 
+            justify-content: center; gap: 15px; padding: 10px;
+        }
+        
+        .multiplier-tag { font-size: 22px; color: var(--gold); font-weight: 900; text-shadow: 0 0 15px rgba(212,175,55,0.3); }
+
+        .card-display { 
+            width: 140px; height: 200px; background: white; border-radius: 20px; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 70px; font-weight: 900; color: #000;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 20px rgba(212, 175, 55, 0.2);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative; border: 4px solid #fff;
+        }
+
+        /* لوحة التحكم السفلية */
+        .controls { 
+            background: #111; padding: 20px 20px 30px 20px; 
+            border-top: 1px solid #333; border-radius: 30px 30px 0 0; 
+            flex-shrink: 0; display: flex; flex-direction: column; gap: 12px;
+        }
+
+        .bet-input { 
+            width: 100%; background: #000; border: 1px solid #333; color: var(--gold); 
+            padding: 15px; border-radius: 15px; text-align: center; font-weight: 900; 
+            font-size: 18px; outline: none;
+        }
+
+        .btn-group { display: flex; gap: 12px; width: 100%; }
+        
+        .btn { 
+            flex: 1; height: 60px; border-radius: 15px; border: none; 
+            font-weight: 900; font-size: 18px; cursor: pointer; font-family: 'Cairo';
+            transition: 0.2s active;
+        }
+        .btn:active { transform: scale(0.95); }
+
+        .up { background: #22c55e; color: #fff; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3); }
+        .down { background: #ef4444; color: #fff; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); }
+        .start-btn, .cash { background: var(--gold); color: #000; width: 100%; height: 65px; font-size: 20px; }
+
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div style="font-weight:900; color:var(--gold)">WIN100 HI-LO</div>
-        <div class="bal" id="bal">0.00</div>
+        <div style="font-weight:900; color:var(--gold); font-size: 18px;">WIN100 HI-LO</div>
+        <div class="bal" id="bal">0.00 ج.م</div>
     </div>
 
     <div id="game-area">
@@ -49,14 +80,16 @@
     </div>
 
     <div class="controls">
-        <input type="number" id="bet-amt" class="bet-input" value="10">
+        <input type="number" id="bet-amt" class="bet-input" value="10" inputmode="decimal">
+        
         <button id="start-btn" class="btn start-btn">إبدأ الجيم 🃏</button>
-        <div id="play-controls" style="display: none;">
+        
+        <div id="play-controls" style="display: none; width: 100%;">
             <div class="btn-group">
                 <button class="btn up" onclick="play('up')">أعلى ⬆️</button>
                 <button class="btn down" onclick="play('down')">أقل ⬇️</button>
             </div>
-            <button id="cash-btn" class="btn cash" onclick="cashOut()">إسحب الأرباح</button>
+            <button id="cash-btn" class="btn cash" style="display: none; margin-top: 12px;" onclick="cashOut()">إسحب الأرباح 💰</button>
         </div>
     </div>
 
@@ -71,11 +104,12 @@
         projectId: "vexa-4b2fb",
         appId: "1:977620445308:web:fec22230e1fbb30c8881f9"
     };
+
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    let balance = 0, uid = "", currentCard = 0, currentMult = 1.0, isPlaying = false, winStreak = 0;
+    let balance = 0, uid = "", currentCard = 0, currentMult = 1.0, isPlaying = false, isProcessing = false;
     const cardEl = document.getElementById('card');
     const startBtn = document.getElementById('start-btn');
     const playControls = document.getElementById('play-controls');
@@ -84,74 +118,71 @@
         if (user) {
             uid = user.uid;
             onSnapshot(doc(db, "users", uid), d => {
-                balance = d.data().walletBalance || 0;
-                document.getElementById('bal').innerText = balance.toFixed(2);
+                balance = d.data()?.walletBalance || 0;
+                document.getElementById('bal').innerText = balance.toFixed(2) + ' ج.م';
             });
         }
     });
 
     startBtn.onclick = async () => {
+        if (isProcessing) return;
         const bet = parseFloat(document.getElementById('bet-amt').value);
         if (bet > balance || bet <= 0) return Swal.fire('خطأ', 'رصيدك لا يكفي', 'error');
 
-        await updateDoc(doc(db, "users", uid), { walletBalance: increment(-bet) });
-        
-        isPlaying = true;
-        winStreak = 0;
-        currentMult = 1.0;
-        currentCard = Math.floor(Math.random() * 12) + 1;
-        
-        updateUI();
-        startBtn.style.display = 'none';
-        playControls.style.display = 'block';
+        isProcessing = true;
+        try {
+            await updateDoc(doc(db, "users", uid), { walletBalance: increment(-bet) });
+            isPlaying = true;
+            currentMult = 1.0;
+            currentCard = Math.floor(Math.random() * 12) + 1;
+            cardEl.innerText = currentCard;
+            startBtn.style.display = 'none';
+            playControls.style.display = 'block';
+        } finally { isProcessing = false; }
     };
 
     window.play = async (choice) => {
-        if (!isPlaying) return;
+        if (!isPlaying || isProcessing) return;
+        isProcessing = true;
 
-        let nextCard;
-        // --- خوارزمية "الشركة دايماً كسبانة" ---
-        if (winStreak >= 2 && Math.random() < 0.7) {
-            // لو كسبان مرتين، نطلعه كارت يخسره بالعافية
-            nextCard = choice === 'up' ? 1 : 13;
-        } else {
-            nextCard = Math.floor(Math.random() * 13) + 1;
-        }
-
-        cardEl.style.transform = 'rotateY(90deg)';
+        const nextCard = Math.floor(Math.random() * 13) + 1;
+        cardEl.style.transform = 'scale(0.8) rotateY(90deg)';
         
         setTimeout(() => {
             const isWin = (choice === 'up' && nextCard >= currentCard) || 
                           (choice === 'down' && nextCard <= currentCard);
 
             currentCard = nextCard;
-            updateUI();
-            cardEl.style.transform = 'rotateY(0deg)';
+            cardEl.innerText = currentCard;
+            cardEl.style.transform = 'scale(1) rotateY(0deg)';
 
             if (isWin) {
-                winStreak++;
-                currentMult += 0.5 * winStreak;
+                currentMult += 0.4; // مضاعف ثابت أأمن للشركة
                 document.getElementById('mult-text').innerText = `المضاعف: ${currentMult.toFixed(2)}x`;
                 document.getElementById('cash-btn').style.display = 'block';
-                if(navigator.vibrate) navigator.vibrate(50);
+                if(navigator.vibrate) navigator.vibrate(40);
             } else {
                 gameOver();
             }
+            isProcessing = false;
         }, 300);
     };
 
     window.cashOut = async () => {
+        if (isProcessing) return;
+        isProcessing = true;
         const bet = parseFloat(document.getElementById('bet-amt').value);
         const win = bet * currentMult;
         await updateDoc(doc(db, "users", uid), { walletBalance: increment(win) });
-        Swal.fire('كاش أوت!', `كسبت ${win.toFixed(2)} ج.م`, 'success');
+        Swal.fire('مبروك!', `ربحت ${win.toFixed(2)} ج.م`, 'success');
         resetGame();
+        isProcessing = false;
     };
 
     function gameOver() {
         isPlaying = false;
         Swal.fire('خسرت!', `الكارت كان ${currentCard}`, 'error');
-        setTimeout(resetGame, 1500);
+        resetGame();
     }
 
     function resetGame() {
@@ -161,11 +192,6 @@
         document.getElementById('cash-btn').style.display = 'none';
         cardEl.innerText = '?';
         document.getElementById('mult-text').innerText = `المضاعف: 1.00x`;
-    }
-
-    function updateUI() {
-        cardEl.innerText = currentCard;
-        cardEl.style.color = (currentCard > 10 || currentCard < 3) ? '#ff4d4d' : '#000';
     }
 </script>
 </body>
