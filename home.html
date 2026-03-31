@@ -180,7 +180,7 @@
 
         <div class="section-title"><i class="fas fa-fire"></i> الألعاب الأكثر ربحاً</div>
         <div class="games-scroll-container">
-            <div class="game-card" onclick="location.href='CR.html'">
+            <div class="game-card" onclick="location.href='crash.html'">
                 <div class="game-img" style="background-image: url('الطياره.jpg');"><div class="multiplier-badge">HOT 🔥</div></div>
                 <div class="game-info"><h3>الطيار Aviator</h3><span>ربح خيالي x100</span></div>
             </div>
@@ -293,25 +293,47 @@
   let deferredPrompt;
   const banner = document.getElementById('install-banner');
 
-  // 1. تسجيل الـ Service Worker
+  // 1. تسجيل الـ Service Worker مع التأكد من المسار
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js');
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('SW Registered ✅', reg.scope))
+        .catch(err => console.log('SW Failed ❌', err));
+    });
   }
 
-  // 2. منطق ظهور شريط التثبيت
+  // 2. مسك حدث التثبيت (الخوارزمية اللي المتصفح بيحبها)
   window.addEventListener('beforeinstallprompt', (e) => {
+    // منع الظهور التلقائي البايخ
     e.preventDefault();
+    // حفظ الحدث للاستخدام عند الضغط
     deferredPrompt = e;
+    // إظهار البانر بتاعك "الشيك"
     banner.style.display = 'flex';
+    console.log("Install prompt is ready to show! 🚀");
   });
 
+  // 3. تنفيذ التثبيت عند ضغطة الزرار
   document.getElementById('install-btn').addEventListener('click', async () => {
     if (deferredPrompt) {
+      // إظهار نافذة المتصفح الأصلية
       deferredPrompt.prompt();
+      
+      // انتظار قرار المستخدم
       const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') banner.style.display = 'none';
+      console.log(`User response: ${outcome}`);
+      
+      // إخفاء البانر بعد القرار
+      banner.style.display = 'none';
       deferredPrompt = null;
     }
+  });
+
+  // 4. إخفاء البانر لو التطبيق متثبت فعلاً
+  window.addEventListener('appinstalled', () => {
+    banner.style.display = 'none';
+    deferredPrompt = null;
+    console.log('Win100 App installed successfully! 🎉');
   });
 </script>
 
