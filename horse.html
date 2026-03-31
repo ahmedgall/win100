@@ -3,44 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>VexaBet | Horse Racing</title>
+    <title>VexaBet | Pro Horse Racing</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        :root { --gold: #f59e0b; --bg: #020617; --track: #1e293b; }
+        :root { --gold: #f59e0b; --bg: #020617; --track: #1e293b; --finish: #facc15; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg); color: white; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #0f172a; border-bottom: 1px solid #334155; }
-        .bal-box { color: var(--gold); font-weight: 900; border: 2px solid var(--gold); padding: 4px 12px; border-radius: 12px; font-size: 14px; }
-
-        /* منطقة السباق */
-        .race-container { flex: 1; padding: 10px; position: relative; background: #0f172a; display: flex; flex-direction: column; justify-content: space-around; }
-        .track { height: 50px; background: var(--track); border-bottom: 2px solid #334155; position: relative; display: flex; align-items: center; border-radius: 5px; overflow: hidden; }
-        .finish-line { position: absolute; right: 20px; top: 0; bottom: 0; width: 10px; background: repeating-linear-gradient(45deg, #fff, #fff 5px, #000 5px, #000 10px); }
         
-        .horse { position: absolute; left: 10px; transition: left 0.1s linear; display: flex; align-items: center; gap: 5px; }
-        .horse-icon { width: 35px; height: 35px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
-        .horse-name { font-size: 9px; font-weight: 900; background: rgba(0,0,0,0.5); padding: 2px 5px; border-radius: 4px; }
+        body { 
+            background: var(--bg); color: white; height: 100dvh; 
+            display: flex; flex-direction: column; overflow: hidden; 
+        }
 
-        /* لوحة التحكم */
-        .controls { background: #0f172a; padding: 20px; border-top: 3px solid #1e293b; }
-        .bet-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; margin-bottom: 15px; }
-        .bet-card { background: #1e293b; border: 2px solid transparent; border-radius: 12px; padding: 10px; text-align: center; cursor: pointer; transition: 0.2s; }
-        .bet-card.active { border-color: var(--gold); background: rgba(245,158,11,0.1); }
-        .bet-card .name { display: block; font-size: 11px; margin-bottom: 5px; }
-        .bet-card .odd { font-weight: 900; color: var(--gold); font-size: 16px; }
+        .header { 
+            height: 60px; display: flex; justify-content: space-between; align-items: center; 
+            padding: 0 15px; background: #0f172a; border-bottom: 1px solid #334155; flex-shrink: 0;
+        }
+        .brand { font-weight: 900; font-size: 18px; }
+        .brand span { color: var(--gold); }
+        .bal-box { color: var(--gold); font-weight: 900; border: 1.5px solid var(--gold); padding: 4px 12px; border-radius: 10px; font-size: 13px; }
 
-        .input-group { display: flex; gap: 10px; margin-top: 10px; }
-        input { flex: 1; background: #020617; border: 1px solid #334155; padding: 12px; border-radius: 10px; color: var(--gold); text-align: center; font-weight: 900; outline: none; }
-        .start-btn { flex: 1.5; background: var(--gold); color: black; border: none; border-radius: 10px; font-weight: 900; font-size: 16px; cursor: pointer; }
-        .start-btn:disabled { opacity: 0.4; }
+        /* منطقة السباق - مرنة */
+        .race-container { 
+            flex: 1; padding: 10px 5px; background: #020617; 
+            display: flex; flex-direction: column; justify-content: space-evenly; 
+            position: relative; overflow: hidden;
+        }
+
+        .track { 
+            height: 16%; min-height: 45px; background: var(--track); 
+            border-bottom: 1px solid rgba(255,255,255,0.05); position: relative; 
+            display: flex; align-items: center; border-radius: 8px; margin-bottom: 4px;
+        }
+
+        .finish-line { 
+            position: absolute; right: 15px; top: 0; bottom: 0; width: 8px; 
+            background: repeating-linear-gradient(0deg, #fff, #fff 5px, #000 5px, #000 10px);
+            border-left: 2px solid var(--finish);
+        }
+        
+        .horse { 
+            position: absolute; left: 5px; transition: left 0.1s linear; 
+            display: flex; align-items: center; z-index: 5;
+        }
+        .horse-icon { width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
+        .horse-name { 
+            font-size: 8px; font-weight: 900; background: rgba(0,0,0,0.7); 
+            padding: 1px 4px; border-radius: 3px; margin-right: -5px; white-space: nowrap;
+        }
+
+        /* لوحة التحكم السفلية */
+        .controls { 
+            background: #0f172a; padding: 15px 15px calc(15px + env(safe-area-inset-bottom)); 
+            border-top: 1px solid #334155; border-radius: 20px 20px 0 0; flex-shrink: 0;
+        }
+
+        .bet-grid { 
+            display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px;
+            scrollbar-width: none; /* Hide scrollbar for Firefox */
+        }
+        .bet-grid::-webkit-scrollbar { display: none; } /* Hide scrollbar for Chrome/Safari */
+
+        .bet-card { 
+            min-width: 85px; background: #1e293b; border: 2px solid transparent; 
+            border-radius: 12px; padding: 8px; text-align: center; transition: 0.2s;
+        }
+        .bet-card.active { border-color: var(--gold); background: rgba(245,158,11,0.15); transform: scale(0.95); }
+        .bet-card .name { display: block; font-size: 10px; opacity: 0.8; }
+        .bet-card .odd { font-weight: 900; color: var(--gold); font-size: 15px; }
+
+        .input-group { display: flex; gap: 10px; margin-top: 5px; }
+        input { 
+            flex: 1; background: #020617; border: 1px solid #334155; padding: 12px; 
+            border-radius: 12px; color: var(--gold); text-align: center; font-weight: 900; font-size: 18px; outline: none; 
+        }
+        .start-btn { 
+            flex: 1.5; background: linear-gradient(135deg, #f59e0b, #d97706); 
+            color: black; border: none; border-radius: 12px; font-weight: 900; font-size: 16px; 
+        }
+        .start-btn:disabled { opacity: 0.4; filter: grayscale(1); }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div style="font-weight:900;">VEXA<span>RACING</span></div>
+        <div class="brand">VEXA<span>RACING</span></div>
         <div class="bal-box" id="user-bal">0.00 EGP</div>
     </div>
 
@@ -53,7 +100,7 @@
 
         <div class="input-group">
             <input type="number" id="bet-amt" value="10" inputmode="numeric">
-            <button class="start-btn" id="race-btn" onclick="startRace()">بدأ السباق 🏁</button>
+            <button class="start-btn" id="race-btn">بدء السباق 🏁</button>
         </div>
     </div>
 
@@ -72,7 +119,7 @@
         { id: 1, name: "الصخرة", color: "#3b82f6", odd: 3.50 },
         { id: 2, name: "الريح", color: "#10b981", odd: 1.80 },
         { id: 3, name: "الزعيم", color: "#f59e0b", odd: 5.00 },
-        { id: 4, name: "السراب", color: "#a855f7", odd: 12.0 }
+        { id: 4, name: "السراب", color: "#a855f7", odd: 8.0 }
     ];
 
     let balance = 0, uid = "", selectedHorse = null, isRacing = false;
@@ -97,37 +144,26 @@
     function initUI() {
         const field = document.getElementById('race-field');
         const options = document.getElementById('bet-options');
-        field.innerHTML = '';
-        options.innerHTML = '';
+        field.innerHTML = ''; options.innerHTML = '';
 
         horses.forEach(h => {
-            field.innerHTML += `
-                <div class="track">
-                    <div class="finish-line"></div>
-                    <div class="horse" id="horse-${h.id}">
-                        ${horseSvg(h.color)}
-                        <span class="horse-name">${h.name}</span>
-                    </div>
-                </div>`;
+            field.innerHTML += `<div class="track"><div class="finish-line"></div><div class="horse" id="horse-${h.id}" style="left:5px">${horseSvg(h.color)}<span class="horse-name">${h.name}</span></div></div>`;
             
-            options.innerHTML += `
-                <div class="bet-card" onclick="selectH(${h.id})">
-                    <span class="name">${h.name}</span>
-                    <span class="odd">x${h.odd}</span>
-                </div>`;
+            const card = document.createElement('div');
+            card.className = 'bet-card';
+            card.onclick = () => {
+                if(isRacing) return;
+                selectedHorse = h;
+                document.querySelectorAll('.bet-card').forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+                if(navigator.vibrate) navigator.vibrate(30);
+            };
+            card.innerHTML = `<span class="name">${h.name}</span><span class="odd">x${h.odd.toFixed(2)}</span>`;
+            options.appendChild(card);
         });
     }
 
-    window.selectH = (id) => {
-        if(isRacing) return;
-        selectedHorse = horses[id];
-        document.querySelectorAll('.bet-card').forEach((c, idx) => {
-            c.classList.toggle('active', idx === id);
-        });
-        if(navigator.vibrate) navigator.vibrate(30);
-    };
-
-    window.startRace = async () => {
+    document.getElementById('race-btn').onclick = async () => {
         const amt = parseFloat(document.getElementById('bet-amt').value);
         if(!selectedHorse) return Swal.fire("عفواً", "اختر حصانك أولاً", "warning");
         if(amt > balance || amt <= 0) return Swal.fire("خطأ", "الرصيد غير كافٍ", "error");
@@ -137,16 +173,16 @@
         await updateDoc(doc(db, "users", uid), { walletBalance: increment(-amt) });
 
         let winners = [];
-        const containerWidth = document.getElementById('race-field').offsetWidth - 80;
+        const trackWidth = document.querySelector('.track').offsetWidth - 45;
         
         const timer = setInterval(() => {
             horses.forEach(h => {
                 const el = document.getElementById(`horse-${h.id}`);
-                let currentLeft = parseFloat(el.style.left) || 10;
+                let currentLeft = parseFloat(el.style.left);
                 
-                // سرعة عشوائية متغيرة لخلق الإثارة
-                const speed = Math.random() * 8 + 2; 
-                if(currentLeft < containerWidth) {
+                // حركة عشوائية لزيادة الحماس
+                const speed = Math.random() * 6 + 1.5; 
+                if(currentLeft < trackWidth) {
                     el.style.left = (currentLeft + speed) + "px";
                 } else if (!winners.includes(h.id)) {
                     winners.push(h.id);
@@ -162,28 +198,22 @@
 
     async function finishRace(winnerId, amt) {
         const winner = horses[winnerId];
-        let win = false;
-
-        if(selectedHorse.id === winnerId) {
-            win = true;
-            const payout = amt * winner.odd;
+        const isWinner = selectedHorse.id === winnerId;
+        
+        if(isWinner) {
+            const payout = amt * selectedHorse.odd;
             await updateDoc(doc(db, "users", uid), { walletBalance: increment(payout) });
-            Swal.fire("مبروك! 🎉", `حصانك "${winner.name}" وصل الأول! ربحت ${payout.toFixed(2)} ج.م`, "success");
+            Swal.fire({ title: "مبروك! 🎉", text: `حصانك "${winner.name}" فاز! ربحت ${payout.toFixed(2)} ج.م`, icon: "success", confirmButtonText: "رائع" });
+            if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
         } else {
-            Swal.fire("حظ أوفر", `الفائز هو "${winner.name}". حاول مرة أخرى!`, "error");
+            Swal.fire({ title: "حظ أوفر", text: `الفائز هو "${winner.name}"`, icon: "error", confirmButtonText: "حاول مجدداً" });
         }
 
         setTimeout(() => {
             isRacing = false;
             document.getElementById('race-btn').disabled = false;
-            resetHorses();
-        }, 2000);
-    }
-
-    function resetHorses() {
-        horses.forEach(h => {
-            document.getElementById(`horse-${h.id}`).style.left = "10px";
-        });
+            horses.forEach(h => document.getElementById(`horse-${h.id}`).style.left = "5px");
+        }, 1500);
     }
 </script>
 </body>
