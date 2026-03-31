@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Win100 | الهدايا الملكية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root { --primary: #f59e0b; --bg: #020617; --card: rgba(30, 41, 59, 0.6); }
+        body { 
+            font-family: 'Cairo', sans-serif; background: radial-gradient(circle at top, #0f172a, #020617);
+            color: white; margin: 0; padding: 20px; min-height: 100vh;
+        }
+        .container { max-width: 450px; margin: 0 auto; }
+        .reward-card {
+            background: var(--card); backdrop-filter: blur(15px); border-radius: 25px;
+            padding: 25px; border: 1px solid rgba(245, 158, 11, 0.2);
+            text-align: center; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .daily-btn {
+            width: 100%; padding: 18px; border-radius: 15px; border: none;
+            background: linear-gradient(135deg, var(--primary), #d97706);
+            color: #000; font-weight: 900; cursor: pointer; font-size: 18px;
+            transition: 0.3s;
+        }
+        .daily-btn:disabled { background: #334155; color: #94a3b8; cursor: not-allowed; }
+        
+        .invite-section {
+            background: rgba(0,0,0,0.3); padding: 15px; border-radius: 15px; margin-top: 15px;
+        }
+        .url-box {
+            background: #000; padding: 12px; border-radius: 10px; color: var(--primary);
+            font-size: 12px; word-break: break-all; margin: 10px 0; border: 1px solid var(--primary);
+            display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+        }
+        .stats { display: flex; justify-content: space-around; margin-top: 15px; }
+        .stat-box { text-align: center; }
+        .stat-box b { display: block; font-size: 20px; color: var(--primary); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="reward-card">
+        <i class="fas fa-crown fa-3x" style="color: var(--primary); filter: drop-shadow(0 0 10px rgba(245,158,11,0.5));"></i>
+        <h2 style="margin: 15px 0 5px;">هدية Win100 اليومية</h2>
+        <p style="font-size: 14px; color: #cbd5e1;">احصل على <b style="color:var(--primary)">4.00 ج.م</b> كل 24 ساعة مجاناً</p>
+        <button id="claim-btn" class="daily-btn">استلم الهدية الآن</button>
+        <p id="timer-msg" style="font-size: 12px; color: #94a3b8; margin-top: 10px;"></p>
+    </div>
+
+    <div class="reward-card">
+        <h3><i class="fas fa-share-nodes" style="color: var(--primary);"></i> نظام جلب الأصدقاء</h3>
+        <p style="font-size: 13px; color: #cbd5e1;">شارك رابطك، وأي شخص يسجل ويشحن هتاخد عمولة فورية!</p>
+        
+        <div class="invite-section">
+            <span style="font-size: 13px; color: #94a3b8;">رابط الدعوة الخاص بك:</span>
+            <div class="url-box" id="copy-trigger">
+                <span id="my-link">جاري توليد الرابط...</span>
+                <i class="fas fa-copy"></i>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-box">
+                <span style="font-size: 12px; color: #94a3b8;">أصدقاء سجلوا</span>
+                <b id="count">0</b>
+            </div>
+            <div class="stat-box">
+                <span style="font-size: 12px; color: #94a3b8;">أرباح الدعوات</span>
+                <b id="earnings">0.00 ج.م</b>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, updateDoc, increment, serverTimestamp, collection, query, where, getDocs, runTransaction } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAzcP_T8x5ouwwKkhadtBTdsUxk3XqwJec",
+        authDomain: "vexa-4b2fb.firebaseapp.com",
+        projectId: "vexa-4b2fb",
+        appId: "1:977620445308:web:fec22230e1fbb30c8881f9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            // 1. توليد رابط الدعوة (استبدل الدومين برابط موقعك الفعلي عند الرفع)
+            const siteUrl = "https://vexa-4b2fb.web.app"; 
+            const fullLink = `${siteUrl}/register.html?ref=${user.uid}`;
+            document.getElementById('my-link').innerText = fullLink;
+
+            // 2. تحميل إحصائيات المستخدم
+            loadUserData(user.uid);
+        } else {
+            window.location.href = 'index.html';
+        }
+    });
+
+    async function loadUserData(uid) {
+        try {
+            const userDoc = await getDoc(doc(db, "users", uid));
+            if (userDoc.exists()) {
+                const data = userDoc.data();
+                
+                // عرض الأرباح
+                document.getElementById('earnings').innerText = (data.agentEarnings || 0).toFixed(2) + " ج.م";
+
+                // تحقق من صلاحية المكافأة اليومية
+                const lastClaim = data.lastDailyClaim;
+                if (lastClaim) {
+                    const diff = Date.now() - lastClaim.toDate().getTime();
+                    const hours24 = 24 * 60 * 60 * 1000;
+                    if (diff < hours24) {
+                        const btn = document.getElementById('claim-btn');
+                        btn.disabled = true;
+                        btn.innerText = "تم الاستلام اليوم";
+                        document.getElementById('timer-msg').innerText = "عد مجدداً بعد 24 ساعة";
+                    }
+                }
+            }
+
+            // عد الأصدقاء المسجلين
+            const q = query(collection(db, "users"), where("referredBy", "==", uid));
+            const snap = await getDocs(q);
+            document.getElementById('count').innerText = snap.size;
+
+        } catch (error) {
+            console.error("Error loading stats:", error);
+        }
+    }
+
+    // تنفيذ المطالبة بالمكافأة اليومية
+    document.getElementById('claim-btn').onclick = async () => {
+        const user = auth.currentUser;
+        if (!user) return;
+
+        Swal.fire({ title: 'جاري التحقق...', didOpen: () => Swal.showLoading(), background: '#020617', color: '#fff' });
+
+        try {
+            await runTransaction(db, async (transaction) => {
+                const userRef = doc(db, "users", user.uid);
+                const userSnap = await transaction.get(userRef);
+                
+                const lastClaim = userSnap.data().lastDailyClaim;
+                const lastTime = lastClaim ? lastClaim.toDate().getTime() : 0;
+
+                if (Date.now() - lastTime < 24 * 60 * 60 * 1000) {
+                    throw "لقد حصلت على هدية اليوم بالفعل!";
+                }
+
+                transaction.update(userRef, {
+                    walletBalance: increment(4), // إضافة الرصيد للمحفظة
+                    lastDailyClaim: serverTimestamp()
+                });
+            });
+
+            Swal.fire({
+                title: 'مبروك!',
+                text: 'تم إضافة 4 جنيه لرصيد ألعابك بنجاح 👑',
+                icon: 'success',
+                confirmButtonColor: '#f59e0b',
+                background: '#020617',
+                color: '#fff'
+            }).then(() => location.reload());
+
+        } catch (e) {
+            Swal.fire({ title: 'عفواً', text: e, icon: 'info', confirmButtonColor: '#f59e0b' });
+        }
+    };
+
+    // نسخ رابط الدعوة
+    document.getElementById('copy-trigger').onclick = () => {
+        const link = document.getElementById('my-link').innerText;
+        navigator.clipboard.writeText(link).then(() => {
+            Swal.fire({
+                title: 'تم النسخ!',
+                text: 'الرابط جاهز للمشاركة الآن',
+                icon: 'success',
+                toast: true,
+                position: 'top',
+                showConfirmButton: false,
+                timer: 2000,
+                background: '#f59e0b',
+                color: '#000'
+            });
+        });
+    };
+</script>
+</body>
+</html>

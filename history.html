@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Win100 | السجل الملكي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #f59e0b; /* الذهبي الملكي */
+            --primary-glow: rgba(245, 158, 11, 0.3);
+            --bg-dark: #020617;
+            --card-bg: rgba(30, 41, 59, 0.4);
+            --glass-border: rgba(245, 158, 11, 0.15);
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: radial-gradient(circle at top right, #0f172a, #020617);
+            background-attachment: fixed;
+            color: var(--text-main);
+            margin: 0; padding: 25px 20px 110px;
+            min-height: 100vh;
+            user-select: none; -webkit-tap-highlight-color: transparent;
+        }
+
+        .page-header { 
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; 
+            animation: fadeIn 0.5s ease;
+        }
+        .page-header h1 { 
+            font-size: 26px; font-weight: 900; margin: 0; 
+            color: #fff; text-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        .history-container { display: flex; flex-direction: column; gap: 15px; max-width: 500px; margin: 0 auto; }
+
+        .trx-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 18px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+            animation: slideUp 0.4s ease forwards;
+            transition: 0.3s;
+        }
+
+        .trx-card:active { transform: scale(0.98); background: rgba(245, 158, 11, 0.05); }
+
+        .icon-box {
+            width: 52px; height: 52px; border-radius: 16px; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 20px; flex-shrink: 0;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        /* تصنيفات الألوان الذهبية والمالية */
+        .type-deposit { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2); }
+        .type-withdraw { background: rgba(245, 158, 11, 0.1); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.2); }
+        .type-send { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); }
+        .type-receive { background: rgba(245, 158, 11, 0.1); color: var(--primary); border: 1px solid var(--glass-border); }
+        .type-game { background: rgba(168, 85, 247, 0.1); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.2); }
+
+        .info-box { flex-grow: 1; overflow: hidden; }
+        .info-box .title { display: block; font-weight: 800; font-size: 16px; color: #fff; margin-bottom: 2px; }
+        .info-box .detail { font-size: 12px; color: var(--text-dim); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        .status-tag { 
+            font-size: 10px; padding: 3px 10px; border-radius: 8px; margin-top: 8px; 
+            display: inline-block; font-weight: 700; text-transform: uppercase;
+        }
+        .status-pending { background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid var(--warning); }
+        .status-completed { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid var(--success); }
+        .status-rejected { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid var(--danger); }
+
+        .amount-box { text-align: left; min-width: 100px; }
+        .amount-box .val { display: block; font-weight: 900; font-size: 17px; font-family: 'Inter', sans-serif; letter-spacing: -0.5px; }
+        .amount-box .date { font-size: 10px; color: var(--text-dim); margin-top: 4px; display: block; }
+
+        /* Bottom Nav (Win100 Master) */
+        .bottom-nav { 
+            position: fixed; bottom: 20px; left: 20px; right: 20px;
+            height: 70px; background: rgba(15, 23, 42, 0.9); 
+            backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 25px;
+            z-index: 1000; display: flex; justify-content: space-around; align-items: center; 
+        }
+        .nav-item { color: var(--text-dim); text-decoration: none; text-align: center; font-size: 11px; transition: 0.3s; }
+        .nav-item.active { color: var(--primary); text-shadow: 0 0 10px var(--primary-glow); }
+        .nav-item i { font-size: 22px; display: block; margin-bottom: 4px; }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .refresh-btn {
+            background: var(--card-bg); border: 1px solid var(--glass-border); 
+            color: var(--primary); width: 45px; height: 45px; border-radius: 15px;
+            cursor: pointer; transition: 0.3s;
+        }
+        .refresh-btn:active { transform: rotate(180deg); }
+    </style>
+</head>
+<body>
+
+    <div class="page-header">
+        <div>
+            <h1>سجل العمليات</h1>
+            <span style="color: var(--primary); font-size: 12px; font-weight: 700;">تتبع نشاطك المالي الملكي</span>
+        </div>
+        <button class="refresh-btn" onclick="location.reload()"><i class="fas fa-sync-alt"></i></button>
+    </div>
+
+    <div id="loader" style="text-align: center; margin-top: 50px; color: var(--primary);"><i class="fas fa-crown fa-spin fa-2x"></i></div>
+    
+    <div class="history-container" id="master-list"></div>
+
+    <div id="empty-view" style="display:none; text-align:center; margin-top:100px; opacity:0.5;">
+        <i class="fas fa-box-open fa-4x" style="margin-bottom: 15px; color: var(--primary);"></i>
+        <p style="font-weight: 700; color: #fff;">السجل فارغ حالياً</p>
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="home.html" class="nav-item"><i class="fas fa-house"></i><span>الرئيسية</span></a>
+        <a href="wallet.html" class="nav-item"><i class="fas fa-wallet"></i><span>المحفظة</span></a>
+        <a href="history.html" class="nav-item active"><i class="fas fa-clock-rotate-left"></i><span>السجل</span></a>
+        <a href="profile.html" class="nav-item"><i class="fas fa-user-gear"></i><span>حسابي</span></a>
+    </nav>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+    import { getFirestore, collection, query, where, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAzcP_T8x5ouwwKkhadtBTdsUxk3XqwJec",
+        authDomain: "vexa-4b2fb.firebaseapp.com",
+        projectId: "vexa-4b2fb",
+        appId: "1:977620445308:web:fec22230e1fbb30c8881f9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) { syncAllActivity(user.uid); } 
+        else { window.location.href = 'index.html'; }
+    });
+
+    function syncAllActivity(uid) {
+        const listDiv = document.getElementById('master-list');
+        const loader = document.getElementById('loader');
+        let dataStore = { trx: [], req: [], games: [] };
+
+        const refreshUI = () => {
+            loader.style.display = 'none';
+            const allData = [...dataStore.trx, ...dataStore.req, ...dataStore.games];
+            allData.sort((a, b) => (b.timeSort || 0) - (a.timeSort || 0));
+            
+            if (allData.length === 0) {
+                document.getElementById('empty-view').style.display = 'block';
+                listDiv.innerHTML = '';
+            } else {
+                document.getElementById('empty-view').style.display = 'none';
+                listDiv.innerHTML = allData.map(item => renderCard(item, uid)).join('');
+            }
+        };
+
+        // 1. مراقبة التحويلات
+        const qTrx = query(collection(db, "transactions"), orderBy("timestamp", "desc"));
+        onSnapshot(qTrx, (snap) => {
+            dataStore.trx = [];
+            snap.forEach(doc => {
+                const d = doc.data();
+                if (d.from === uid || d.to === uid) {
+                    dataStore.trx.push({
+                        ...d, id: doc.id,
+                        category: d.from === uid ? 'send' : 'receive',
+                        timeSort: d.timestamp?.seconds || 0,
+                        displayDate: formatDate(d.timestamp)
+                    });
+                }
+            });
+            refreshUI();
+        });
+
+        // 2. مراقبة طلبات السحب والإيداع
+        const qReq = query(collection(db, "withdrawRequests"), where("uid", "==", uid));
+        onSnapshot(qReq, (snap) => {
+            dataStore.req = [];
+            snap.forEach(doc => {
+                const d = doc.data();
+                dataStore.req.push({
+                    ...d, id: doc.id,
+                    category: d.type === 'deposit' ? 'deposit' : 'withdraw',
+                    timeSort: d.createdAt?.seconds || d.timestamp?.seconds || 0,
+                    displayDate: formatDate(d.createdAt || d.timestamp)
+                });
+            });
+            refreshUI();
+        });
+    }
+
+    function renderCard(item, myUid) {
+        let title, icon, colorClass, detail, amount, statusHtml = '';
+        const statusLabels = { 'pending': 'معلق', 'completed': 'مكتمل', 'rejected': 'ملغي' };
+        const statusClass = item.status ? `status-${item.status}` : 'status-completed';
+
+        if (item.category === 'send') {
+            title = 'تحويل صادر'; icon = 'fa-arrow-up-from-bracket'; colorClass = 'type-send';
+            detail = `إلى: ${item.toName || 'مستخدم Win100'}`;
+            amount = `-${item.amount}`;
+        } else if (item.category === 'receive') {
+            title = 'تحويل وارد'; icon = 'fa-arrow-down-left'; colorClass = 'type-receive';
+            detail = `من: ${item.fromName || 'عضو ملكي'}`;
+            amount = `+${item.amount}`;
+        } else if (item.category === 'deposit') {
+            title = 'شحن محفظة'; icon = 'fa-guaranty-card'; colorClass = 'type-deposit';
+            detail = `بواسطة: ${item.method || 'السيستم'}`;
+            amount = `+${item.amount}`;
+            statusHtml = `<span class="status-tag ${statusClass}">${statusLabels[item.status] || 'ناجح'}</span>`;
+        } else if (item.category === 'withdraw') {
+            title = 'سحب أرباح'; icon = 'fa-money-bill-transfer'; colorClass = 'type-withdraw';
+            detail = `إلى: ${item.phone || 'محفظتك'}`;
+            amount = `-${item.amount}`;
+            statusHtml = `<span class="status-tag ${statusClass}">${statusLabels[item.status] || 'قيد المعالجة'}</span>`;
+        }
+
+        const isPositive = amount.startsWith('+');
+
+        return `
+            <div class="trx-card">
+                <div class="icon-box ${colorClass}"><i class="fas ${icon}"></i></div>
+                <div class="info-box">
+                    <span class="title">${title}</span>
+                    <span class="detail">${detail}</span>
+                    ${statusHtml}
+                </div>
+                <div class="amount-box">
+                    <span class="val" style="color: ${isPositive ? 'var(--success)' : 'var(--danger)'}">${amount}</span>
+                    <span class="date">${item.displayDate}</span>
+                </div>
+            </div>
+        `;
+    }
+
+    function formatDate(ts) {
+        if (!ts) return 'الآن';
+        const date = new Date(ts.seconds * 1000);
+        return date.toLocaleDateString('ar-EG', { day: 'numeric', month: 'short' }) + ' | ' + 
+               date.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+    }
+</script>
+</body>
+</html>

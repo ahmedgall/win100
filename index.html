@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Win100 | منصة الرابحين الأولى</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root { 
+            --primary: #f59e0b; 
+            --bg-dark: #020617; 
+            --card-bg: rgba(15, 23, 42, 0.85); 
+            --gold-gradient: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        body { 
+            font-family: 'Cairo', sans-serif; 
+            background-color: var(--bg-dark); 
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(245, 158, 11, 0.1) 0px, transparent 50%), 
+                radial-gradient(at 100% 100%, rgba(30, 41, 59, 0.2) 0px, transparent 50%); 
+            color: white; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow-x: hidden; 
+        }
+        
+        .auth-container { width: 100%; max-width: 420px; padding: 20px; animation: slideUp 0.6s ease-out; }
+        .glass-panel { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 32px; padding: 40px 30px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header i { font-size: 50px; color: var(--primary); text-shadow: 0 0 20px rgba(245, 158, 11, 0.5); margin-bottom: 15px; }
+        .header h1 { font-weight: 900; margin: 0; font-size: 32px; letter-spacing: 2px; text-transform: uppercase; }
+        .promo-perks { background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(16, 185, 129, 0.05)); border: 1px dashed var(--primary); color: #fff; padding: 15px; border-radius: 18px; font-size: 12px; margin-bottom: 20px; text-align: center; }
+        .promo-perks b { color: var(--primary); font-size: 14px; display: block; margin-bottom: 5px; }
+        .input-group { position: relative; margin-bottom: 18px; }
+        .input-group i { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); color: #64748b; }
+        .input-group input { width: 100%; padding: 16px 52px 16px 18px; background: rgba(2, 6, 23, 0.8); border: 1.5px solid rgba(255, 255, 255, 0.05); border-radius: 16px; color: white; font-size: 16px; outline: none; box-sizing: border-box; transition: 0.3s; }
+        .input-group input:focus { border-color: var(--primary); background: #000; }
+        .promo-input input { border: 1.5px solid rgba(245, 158, 11, 0.5) !important; color: var(--primary) !important; font-weight: 700; background: rgba(245, 158, 11, 0.05) !important; }
+        .main-btn { width: 100%; padding: 18px; border-radius: 16px; border: none; background: var(--gold-gradient); color: #000; font-size: 18px; font-weight: 900; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 20px -5px rgba(245, 158, 11, 0.4); }
+        .footer-text { text-align: center; margin-top: 30px; font-size: 14px; color: #64748b; }
+        .toggle-btn { color: var(--primary); font-weight: 700; cursor: pointer; text-decoration: underline; }
+        .hidden { display: none; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="auth-container">
+    <div class="glass-panel">
+        <div class="header">
+            <i class="fas fa-crown"></i>
+            <h1 id="title">WIN <span style="color:var(--primary)">100</span></h1>
+        </div>
+
+        <div id="register-fields" class="hidden">
+            <div class="promo-perks">
+                <b>🎁 هدايا الرابحين الجدد</b>
+                احصل على بونص <span style="color:var(--primary)">200%</span> + هدايا يومية!
+            </div>
+            <div class="input-group">
+                <input type="text" id="username" placeholder="الاسم بالكامل">
+                <i class="fas fa-user-tie"></i>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <input type="tel" id="phone" placeholder="رقم الموبايل">
+            <i class="fas fa-mobile-screen-button"></i>
+        </div>
+
+        <div class="input-group">
+            <input type="password" id="password" placeholder="كلمة المرور">
+            <i class="fas fa-shield-halved"></i>
+        </div>
+
+        <div id="register-extra" class="hidden">
+            <div class="input-group">
+                <input type="password" id="confirm-password" placeholder="تأكيد كلمة المرور">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="input-group promo-input">
+                <input type="text" id="promo-code" placeholder="كود الدعوة / البرومو">
+                <i class="fas fa-gem"></i>
+            </div>
+        </div>
+
+        <button class="main-btn" id="submit-btn">دخول آمن</button>
+
+        <p class="footer-text">
+            <span id="toggle-msg">ليس لديك حساب؟</span>
+            <span class="toggle-btn" id="toggle-link">ابدأ الفوز الآن</span>
+        </p>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAzcP_T8x5ouwwKkhadtBTdsUxk3XqwJec",
+        authDomain: "vexa-4b2fb.firebaseapp.com",
+        projectId: "vexa-4b2fb",
+        appId: "1:977620445308:web:fec22230e1fbb30c8881f9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // --- منطق رابط الدعوة الذكي ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const inviteCode = urlParams.get('ref');
+
+    // لو اليوزر جاي من رابط دعوة، نفتح وضع التسجيل فوراً ونكتب الكود
+    if (inviteCode) {
+        window.onload = () => {
+            toggleMode(true); 
+            document.getElementById('promo-code').value = inviteCode;
+            document.getElementById('promo-code').readOnly = true; // نخليه للقراءة فقط عشان نضمن المكافأة
+        };
+    }
+
+    let isRegisterMode = false;
+
+    function toggleMode(targetMode) {
+        isRegisterMode = targetMode;
+        document.getElementById('title').innerHTML = isRegisterMode ? "عضوية <span style='color:#f59e0b'>الفوز</span>" : "WIN <span style='color:#f59e0b'>100</span>";
+        document.getElementById('register-fields').style.display = isRegisterMode ? 'block' : 'none';
+        document.getElementById('register-extra').style.display = isRegisterMode ? 'block' : 'none';
+        document.getElementById('submit-btn').innerText = isRegisterMode ? "تأكيد التسجيل والبونص" : "دخول آمن";
+        document.getElementById('toggle-msg').innerText = isRegisterMode ? "عضو في Win100؟" : "ليس لديك حساب؟";
+        document.getElementById('toggle-link').innerText = isRegisterMode ? "سجل دخولك" : "ابدأ الفوز الآن";
+    }
+
+    document.getElementById('toggle-link').onclick = () => toggleMode(!isRegisterMode);
+
+    document.getElementById('submit-btn').onclick = () => {
+        const phone = document.getElementById('phone').value.trim();
+        const password = document.getElementById('password').value;
+        if (isRegisterMode) handleRegister(); else loginUser(phone, password);
+    };
+
+    async function loginUser(phone, password) {
+        if (!phone || !password) return Swal.fire('تنبيه', 'برجاء إدخال بيانات الدخول', 'warning');
+        const fakeEmail = `${phone}@win100.net`;
+        Swal.fire({ title: 'جاري المصادقة...', didOpen: () => Swal.showLoading(), background: '#020617', color: '#fff' });
+        try {
+            await signInWithEmailAndPassword(auth, fakeEmail, password);
+            window.location.href = "home.html";
+        } catch (error) {
+            Swal.fire('خطأ في الدخول', 'تأكد من الرقم أو كلمة المرور', 'error');
+        }
+    }
+
+    async function handleRegister() {
+        const phone = document.getElementById('phone').value.trim();
+        const password = document.getElementById('password').value;
+        const confirmPass = document.getElementById('confirm-password').value;
+        const fullName = document.getElementById('username').value;
+        const promo = document.getElementById('promo-code').value.trim();
+        const fakeEmail = `${phone}@win100.net`;
+
+        if (!fullName || !phone || !password) return Swal.fire('بيانات ناقصة', 'يرجى ملء جميع الخانات', 'info');
+        if (password !== confirmPass) return Swal.fire('خطأ', 'كلمات المرور غير متطابقة', 'error');
+
+        Swal.fire({ title: 'جاري الانضمام لـ Win100...', didOpen: () => Swal.showLoading() });
+
+        try {
+            const res = await createUserWithEmailAndPassword(auth, fakeEmail, password);
+            
+            // تسجيل البيانات مع كود الدعوة
+            await setDoc(doc(db, "users", res.user.uid), {
+                username: fullName,
+                phone: phone,
+                walletBalance: 0,
+                userId: res.user.uid,
+                referredBy: promo || "DIRECT", // تسجيل الشخص اللي دعاه
+                role: "player",
+                platform: "Win100_Official",
+                createdAt: serverTimestamp()
+            });
+
+            await Swal.fire({ title: 'أهلاً بك يا ملك!', text: 'تم إنشاء حسابك وتفعيل نظام المكافآت.', icon: 'success', confirmButtonColor: '#f59e0b' });
+            window.location.href = "home.html";
+        } catch (e) {
+            Swal.fire('فشل التسجيل', 'تأكد من البيانات أو أن الرقم لم يسجل من قبل', 'error');
+        }
+    }
+</script>
+</body>
+</html>

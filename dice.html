@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Win100 | Dice Mobile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Inter:wght@900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --gold: #d4af37; --gold-dark: #aa841e; --bg: #0a0a0a; 
+            --card: #151515; --text: #ffffff; --success: #22c55e; --danger: #ef4444;
+        }
+
+        /* منع أي زوم أو تحرك جانبي في الموبايل */
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; outline: none; }
+        html, body { height: 100%; overflow: hidden; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text);
+            display: flex; flex-direction: column;
+        }
+
+        /* هيدر نحيف للموبايل */
+        .header {
+            padding: 10px 15px; display: flex; justify-content: space-between; align-items: center;
+            background: #111; border-bottom: 1px solid var(--gold-dark);
+        }
+        .logo { font-weight: 900; font-size: 18px; color: var(--gold); letter-spacing: 1px; }
+        .balance-box {
+            background: rgba(212, 175, 55, 0.1); padding: 5px 12px; border-radius: 10px;
+            border: 1px solid var(--gold); display: flex; align-items: center; gap: 6px;
+        }
+        #bal { font-weight: 900; color: var(--gold); font-size: 14px; }
+
+        /* منطقة اللعب - تأخذ المساحة المتبقية */
+        .game-main {
+            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 10px; gap: 15px;
+        }
+
+        /* العداد الدائري */
+        .dice-circle {
+            width: 160px; height: 160px; background: radial-gradient(circle, #222, #000);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            border: 3px solid #333; box-shadow: 0 0 30px rgba(212, 175, 55, 0.15);
+            position: relative;
+        }
+        #result-num {
+            font-family: 'Inter', sans-serif; font-size: 70px; font-weight: 900;
+            color: var(--gold); text-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+        }
+
+        /* صندوق السلايدر */
+        .slider-container {
+            width: 100%; max-width: 320px; background: #111; padding: 15px;
+            border-radius: 20px; border: 1px solid #222;
+        }
+        .slider-labels { display: flex; justify-content: space-between; font-size: 12px; color: #888; margin-bottom: 8px; font-weight: 700; }
+        
+        input[type="range"] {
+            width: 100%; height: 6px; background: #333; border-radius: 10px;
+            -webkit-appearance: none; accent-color: var(--gold);
+        }
+
+        /* لوحة التحكم السفلي */
+        .bottom-panel {
+            background: var(--card); padding: 20px 15px 35px; border-radius: 30px 30px 0 0;
+            border-top: 1px solid #222; box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
+        }
+
+        .stats-grid { display: flex; gap: 8px; margin-bottom: 15px; }
+        .stat-card {
+            flex: 1; background: #000; padding: 8px; border-radius: 12px; border: 1px solid #222; text-align: center;
+        }
+        .stat-label { font-size: 10px; color: #666; display: block; margin-bottom: 2px; }
+        .stat-val { font-weight: 900; font-size: 13px; color: #fff; }
+
+        .bet-row { display: flex; gap: 10px; margin-bottom: 15px; }
+        input[type="number"] {
+            flex: 1; background: #000; border: 1px solid #333; color: var(--gold);
+            padding: 12px; border-radius: 15px; font-weight: 900; text-align: center;
+            font-size: 18px; inputmode: decimal;
+        }
+
+        .btn-roll {
+            width: 100%; padding: 16px; border-radius: 15px; border: none;
+            background: var(--gold); color: #000; font-size: 20px; font-weight: 900;
+            cursor: pointer; box-shadow: 0 5px 15px rgba(212, 175, 55, 0.2);
+        }
+        .btn-roll:active { transform: scale(0.95); opacity: 0.9; }
+
+        .loss-anim { animation: shake 0.3s; color: var(--danger) !important; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="logo">WIN100</div>
+        <div class="balance-box">
+            <i class="fas fa-wallet" style="color: var(--gold); font-size: 12px;"></i>
+            <span id="bal">0.00</span>
+        </div>
+    </div>
+
+    <div class="game-main">
+        <div class="dice-circle">
+            <div id="result-num">50</div>
+        </div>
+
+        <div class="slider-container">
+            <div class="slider-labels">
+                <span>أقل من: <b id="target-val" style="color:var(--gold)">50</b></span>
+                <span>المضاعف: <b id="mult-val" style="color:#fff">1.98x</b></span>
+            </div>
+            <input type="range" id="roll-slider" min="2" max="98" value="50">
+        </div>
+    </div>
+
+    <div class="bottom-panel">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-label">نسبة الفوز</span>
+                <span class="stat-val" id="chance-val">50%</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">الربح الصافي</span>
+                <span class="stat-val" id="profit-val" style="color:var(--success)">0.00</span>
+            </div>
+        </div>
+
+        <div class="bet-row">
+            <input type="number" id="bet-amt" value="10">
+        </div>
+        
+        <button class="btn-roll" id="roll-btn">إرمي الزهر</button>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+    import { getFirestore, doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAzcP_T8x5ouwwKkhadtBTdsUxk3XqwJec",
+        authDomain: "vexa-4b2fb.firebaseapp.com",
+        projectId: "vexa-4b2fb",
+        appId: "1:977620445308:web:fec22230e1fbb30c8881f9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let balance = 0, uid = "";
+    const slider = document.getElementById('roll-slider');
+    const rollBtn = document.getElementById('roll-btn');
+    const resultTxt = document.getElementById('result-num');
+    const betInput = document.getElementById('bet-amt');
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            uid = user.uid;
+            onSnapshot(doc(db, "users", uid), (d) => {
+                balance = d.data().walletBalance || 0;
+                document.getElementById('bal').innerText = balance.toFixed(2);
+                updateCalc();
+            });
+        }
+    });
+
+    function updateCalc() {
+        const bet = parseFloat(betInput.value) || 0;
+        const target = slider.value;
+        const mult = (98 / target).toFixed(2);
+        document.getElementById('target-val').innerText = target;
+        document.getElementById('chance-val').innerText = target + '%';
+        document.getElementById('mult-val').innerText = mult + 'x';
+        document.getElementById('profit-val').innerText = (bet * mult).toFixed(2);
+    }
+
+    slider.oninput = updateCalc;
+    betInput.oninput = updateCalc;
+
+    rollBtn.onclick = async () => {
+        const bet = parseFloat(betInput.value);
+        const target = parseInt(slider.value);
+        
+        if (bet > balance || bet <= 0) return Swal.fire({title:'خطأ', text:'الرصيد لا يكفي', icon:'error', confirmButtonColor: '#d4af37'});
+
+        rollBtn.disabled = true;
+        resultTxt.classList.remove('loss-anim');
+        
+        await updateDoc(doc(db, "users", uid), { walletBalance: increment(-bet) });
+
+        // خوارزمية Win100 الذكية
+        let final;
+        const rig = Math.random() * 100;
+        if (bet >= 25 || rig < 65) {
+            final = target + Math.floor(Math.random() * 4 + 1); // خسارة بفارق بسيط
+            if(final > 100) final = 99;
+        } else {
+            final = Math.floor(Math.random() * (target - 1)) + 1; // فوز
+        }
+
+        let i = 0;
+        let anim = setInterval(() => {
+            resultTxt.innerText = Math.floor(Math.random() * 100);
+            if (++i > 10) {
+                clearInterval(anim);
+                resultTxt.innerText = final;
+                finishRoll(final, target, bet);
+            }
+        }, 60);
+    };
+
+    async function finishRoll(num, target, bet) {
+        if (num < target) {
+            const win = bet * (98 / target);
+            await updateDoc(doc(db, "users", uid), { walletBalance: increment(win) });
+            if(window.navigator.vibrate) window.navigator.vibrate(50);
+            Swal.fire({title:'فوز!', text:`ربحت ${win.toFixed(2)} ج.م`, icon:'success', confirmButtonColor: '#d4af37', background: '#151515', color: '#fff'});
+        } else {
+            resultTxt.classList.add('loss-anim');
+            if(window.navigator.vibrate) window.navigator.vibrate([100, 50, 100]);
+        }
+        rollBtn.disabled = false;
+    }
+</script>
+</body>
+</html>

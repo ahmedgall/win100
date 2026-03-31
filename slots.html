@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Win100 | Chests Mobile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root { 
+            --gold: #f59e0b; 
+            --bg: #020617; 
+            --card: #0f172a; 
+            --win: #10b981; 
+            --loss: #ef4444; 
+            --safe-bottom: env(safe-area-inset-bottom);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body { 
+            font-family: 'Cairo', sans-serif; 
+            background: var(--bg); 
+            color: white; 
+            height: 100vh; 
+            height: -webkit-fill-available;
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column; 
+        }
+
+        /* الهيدر */
+        .header { 
+            padding: 12px 20px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            background: rgba(15, 23, 42, 0.8); 
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            z-index: 10;
+        }
+
+        .bal-badge { 
+            background: linear-gradient(90deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.05));
+            padding: 6px 14px; 
+            border-radius: 50px; 
+            border: 1px solid var(--gold);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .bal-amt { color: var(--gold); font-weight: 900; font-size: 16px; }
+
+        /* منطقة اللعب */
+        #game-area { 
+            flex: 1; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 15px; 
+        }
+
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 10px; 
+            width: 100%; 
+            max-width: 340px; 
+        }
+        
+        .chest { 
+            aspect-ratio: 1; 
+            background: var(--card); 
+            border-radius: 18px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            cursor: pointer; 
+            transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .chest svg { width: 45%; height: 45%; }
+        
+        .chest:active { transform: scale(0.9); }
+        
+        .chest.open { 
+            background: rgba(16, 185, 129, 0.1); 
+            border-color: var(--win); 
+            pointer-events: none; 
+        }
+
+        .chest.boom { 
+            background: rgba(239, 68, 68, 0.1); 
+            border-color: var(--loss); 
+            animation: shake 0.4s;
+        }
+
+        /* لوحة التحكم السفلية */
+        .controls { 
+            background: #0f172a; 
+            padding: 20px 20px calc(25px + var(--safe-bottom)); 
+            border-top: 1px solid rgba(255,255,255,0.1); 
+            border-radius: 30px 30px 0 0; 
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.6);
+        }
+
+        #status { text-align: center; color: #94a3b8; margin-bottom: 15px; font-weight: 700; font-size: 14px; }
+
+        .input-group { 
+            background: #020617; 
+            border: 1px solid #1e293b; 
+            border-radius: 16px; 
+            display: flex; 
+            align-items: center; 
+            padding: 4px;
+            margin-bottom: 15px;
+        }
+
+        input { 
+            flex: 1; 
+            background: transparent; 
+            border: none; 
+            color: var(--gold); 
+            padding: 12px; 
+            text-align: center; 
+            font-weight: 900; 
+            font-size: 20px; 
+            outline: none; 
+        }
+
+        .main-btn { 
+            width: 100%; 
+            padding: 16px; 
+            border-radius: 14px; 
+            border: none; 
+            font-weight: 900; 
+            font-size: 18px; 
+            cursor: pointer; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .start { background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; }
+        .cashout { background: linear-gradient(135deg, #10b981, #059669); color: #fff; display: none; }
+
+        @keyframes shake { 
+            0%, 100% {transform: translateX(0);} 
+            25% {transform: translateX(-6px);} 
+            75% {transform: translateX(6px);} 
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div style="font-weight:900; letter-spacing: 1px;">WIN<span style="color:var(--gold)">100</span></div>
+        <div class="bal-badge">
+            <span class="bal-amt" id="bal">0.00</span>
+            <span style="color:var(--gold); font-size: 10px; font-weight: 900;">EGP</span>
+        </div>
+    </div>
+
+    <div id="game-area">
+        <div class="grid" id="grid"></div>
+    </div>
+
+    <div class="controls">
+        <div id="status">أدخل الرهان لفتح الصناديق</div>
+        <div class="input-group">
+            <input type="number" id="bet-amt" value="10" inputmode="numeric">
+        </div>
+        <button id="main-btn" class="main-btn start">ابدأ اللعب 📦</button>
+        <button id="cash-btn" class="main-btn cashout">سحب الأرباح (1.00x)</button>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+    import { getFirestore, doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAzcP_T8x5ouwwKkhadtBTdsUxk3XqwJec",
+        authDomain: "vexa-4b2fb.firebaseapp.com",
+        projectId: "vexa-4b2fb",
+        appId: "1:977620445308:web:fec22230e1fbb30c8881f9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    const icons = {
+        chest: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #f59e0b;"><path d="M22 7l-10-5-10 5 10 5 10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>`,
+        coin: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #10b981;"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M8 12h8"/></svg>`,
+        bomb: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #ef4444;"><circle cx="12" cy="13" r="7"/><path d="M12 6V3M15 4l-1 1M9 4l1 1"/></svg>`
+    };
+
+    let balance = 0, uid = "", isPlaying = false, trapIndex = -1, revealed = 0, currentMult = 1.0;
+    const grid = document.getElementById('grid');
+    const mainBtn = document.getElementById('main-btn');
+    const cashBtn = document.getElementById('cash-btn');
+    const statusText = document.getElementById('status');
+
+    for(let i=0; i<9; i++) {
+        const d = document.createElement('div');
+        d.className = 'chest';
+        d.innerHTML = icons.chest;
+        d.onclick = () => openChest(i, d);
+        grid.appendChild(d);
+    }
+
+    onAuthStateChanged(auth, user => {
+        if (user) {
+            uid = user.uid;
+            onSnapshot(doc(db, "users", uid), d => {
+                balance = d.data()?.walletBalance || 0;
+                document.getElementById('bal').innerText = balance.toFixed(2);
+            });
+        }
+    });
+
+    mainBtn.onclick = async () => {
+        const bet = parseFloat(document.getElementById('bet-amt').value);
+        if (bet > balance || bet <= 0) return Swal.fire({title:'عفواً', text:'الرصيد غير كافٍ', icon:'warning', background:'#0f172a', color:'#fff'});
+        
+        await updateDoc(doc(db, "users", uid), { walletBalance: increment(-bet) });
+        startGame();
+    };
+
+    function startGame() {
+        isPlaying = true; revealed = 0; currentMult = 1.0;
+        trapIndex = Math.floor(Math.random() * 9);
+        document.querySelectorAll('.chest').forEach(c => {
+            c.className = 'chest';
+            c.innerHTML = icons.chest;
+        });
+        mainBtn.style.display = 'none';
+        cashBtn.style.display = 'flex';
+        statusText.innerText = "اختر صندوقاً بحذر...";
+        updateCashBtn();
+    }
+
+    function openChest(idx, el) {
+        if(!isPlaying || el.classList.contains('open')) return;
+
+        if (revealed >= 2 && Math.random() < 0.4) trapIndex = idx;
+
+        if(idx === trapIndex) {
+            gameOver(el);
+        } else {
+            revealed++;
+            currentMult += (0.2 * (revealed * 0.9));
+            el.classList.add('open');
+            el.innerHTML = icons.coin;
+            statusText.innerText = `الربح الحالي: ${currentMult.toFixed(2)}x`;
+            updateCashBtn();
+            if(navigator.vibrate) navigator.vibrate(30);
+        }
+    }
+
+    function updateCashBtn() {
+        cashBtn.innerText = `سحب الأرباح (${currentMult.toFixed(2)}x)`;
+    }
+
+    cashBtn.onclick = async () => {
+        if(!isPlaying) return;
+        const win = parseFloat(document.getElementById('bet-amt').value) * currentMult;
+        await updateDoc(doc(db, "users", uid), { walletBalance: increment(win) });
+        isPlaying = false;
+        Swal.fire({title:'مبروك!', text:`جمعت ${win.toFixed(2)} EGP`, icon:'success', background:'#0f172a', color:'#fff'});
+        resetUI();
+    };
+
+    function gameOver(el) {
+        isPlaying = false;
+        el.classList.add('boom');
+        el.innerHTML = icons.bomb;
+        if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
+        Swal.fire({title:'بوم!', text:'حظ موفق المرة القادمة', icon:'error', background:'#0f172a', color:'#fff'});
+        setTimeout(resetUI, 1500);
+    }
+
+    function resetUI() {
+        mainBtn.style.display = 'flex';
+        cashBtn.style.display = 'none';
+        statusText.innerText = "أدخل الرهان لفتح الصناديق";
+    }
+</script>
+</body>
+</html>

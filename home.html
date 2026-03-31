@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Win100 | إمبراطورية الألعاب</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #f59e0b;
+            --primary-glow: rgba(245, 158, 11, 0.3);
+            --bg-dark: #020617;
+            --card-bg: rgba(30, 41, 59, 0.4);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --glass-border: rgba(245, 158, 11, 0.15);
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: radial-gradient(circle at top right, #0f172a, #020617);
+            background-attachment: fixed;
+            color: var(--text-main);
+            margin: 0;
+            padding-bottom: 110px;
+            user-select: none;
+            overflow-x: hidden;
+        }
+
+        /* الهيدر */
+        .header { 
+            padding: 40px 25px 20px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1001;
+            background: rgba(2, 6, 23, 0.7);
+            backdrop-filter: blur(10px);
+        }
+        .header h1 { 
+            font-size: 24px; 
+            font-weight: 900; 
+            margin: 0;
+            background: linear-gradient(135deg, #fff 40%, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .user-balance-top {
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            padding: 8px 15px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .container { padding: 0 15px; }
+
+        /* البانر الإعلاني */
+        .bonus-banner {
+            background: linear-gradient(135deg, #d97706 0%, #78350f 100%);
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+        }
+
+        /* نظام السكرول الأفقي */
+        .section-title {
+            font-size: 17px;
+            font-weight: 800;
+            margin: 25px 5px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-title i { color: var(--primary); }
+
+        .games-scroll-container {
+            display: flex;
+            overflow-x: auto;
+            gap: 15px;
+            padding: 5px 5px 15px;
+            scrollbar-width: none;
+        }
+        .games-scroll-container::-webkit-scrollbar { display: none; }
+
+        .game-card {
+            min-width: 145px;
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            transition: 0.3s;
+            backdrop-filter: blur(10px);
+            flex-shrink: 0;
+        }
+        .game-card:active { transform: scale(0.95); }
+
+        .game-img {
+            width: 100%;
+            height: 110px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        .game-info {
+            padding: 10px;
+            text-align: center;
+        }
+        .game-info h3 { margin: 0; font-size: 13px; font-weight: 700; }
+        .game-info span { color: var(--primary); font-size: 10px; font-weight: 800; }
+
+        .multiplier-badge {
+            position: absolute; top: 8px; right: 8px;
+            background: rgba(0,0,0,0.8);
+            color: var(--primary);
+            padding: 2px 7px; border-radius: 6px;
+            font-size: 9px; font-weight: 900; border: 1px solid var(--primary);
+        }
+
+        /* القائمة السفلية */
+        .bottom-nav { 
+            position: fixed; bottom: 15px; left: 15px; right: 15px;
+            height: 70px; background: rgba(15, 23, 42, 0.95); 
+            backdrop-filter: blur(20px); 
+            display: flex; justify-content: space-around; align-items: center; 
+            border: 1px solid var(--glass-border); border-radius: 25px;
+            z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+        .nav-item { color: var(--text-dim); text-decoration: none; text-align: center; font-size: 11px; transition: 0.3s; }
+        .nav-item.active { color: var(--primary); transform: translateY(-3px); }
+        .nav-item i { font-size: 22px; display: block; margin-bottom: 4px; }
+
+   </style>
+
+
+
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#f59e0b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Win100">
+
+
+
+
+</head>
+<body>
+
+    <div class="header">
+        <div class="logo-area"><h1>WIN 100</h1></div>
+        <div class="user-balance-top">
+            <i class="fas fa-wallet" style="color: var(--primary);"></i>
+            <span id="top-balance" style="font-weight: 900; font-family: 'Inter';">0.00</span>
+            <span style="font-size: 10px; color: var(--text-dim);">ج.م</span>
+        </div>
+    </div>
+
+    <div class="container">
+        
+        <div class="bonus-banner">
+            <div style="z-index: 1;">
+                <h2 style="margin:0; font-size: 18px;">مكافأة الإيداع الأول</h2>
+                <p style="margin:5px 0 0; font-size: 12px; opacity: 0.9;">احصل على 200% بونص فوري</p>
+            </div>
+            <button onclick="location.href='deposit.html'" style="background: white; border:none; padding:8px 15px; border-radius:12px; font-weight:900; font-size:12px; color: #78350f; z-index:1;">إيداع</button>
+        </div>
+
+        <div class="section-title"><i class="fas fa-fire"></i> الألعاب الأكثر ربحاً</div>
+        <div class="games-scroll-container">
+            <div class="game-card" onclick="location.href='crash.html'">
+                <div class="game-img" style="background-image: url('الطياره.jpg');"><div class="multiplier-badge">HOT 🔥</div></div>
+                <div class="game-info"><h3>الطيار Aviator</h3><span>ربح خيالي x100</span></div>
+            </div>
+            <div class="game-card" onclick="location.href='mines.html'">
+                <div class="game-img" style="background-image: url('الماسه.jpg');"><div class="multiplier-badge">NEW</div></div>
+                <div class="game-info"><h3>لعبة الالماس</h3><span>اختبر ذكاءك</span></div>
+            </div>
+            <div class="game-card" onclick="location.href='dice.html'">
+                <div class="game-img" style="background-image: url('الزهر.jpg');"></div>
+                <div class="game-info"><h3>زهر الحظ</h3><span>توقع واربح</span></div>
+            </div>
+            <div class="game-card" onclick="location.href='plinko.html'">
+                <div class="game-img" style="background-image: url('hi.png');"></div>
+                <div class="game-info"><h3>Hi-Lo</h3><span>توقع الرقم</span></div>
+            </div>
+        </div>
+
+        <div class="section-title"><i class="fas fa-gem"></i> كازينو Win100 المباشر</div>
+        <div class="games-scroll-container">
+            <div class="game-card" onclick="location.href='slots.html'">
+                <div class="game-img" style="background-image: url('صندوق.jpg');"><div class="multiplier-badge">JACKPOT</div></div>
+                <div class="game-info"><h3>صناديق الذهب</h3><span>اربح الجائزة الكبرى</span></div>
+            </div>
+            <div class="game-card" onclick="location.href='wheel.html'">
+                <div class="game-img" style="background-image: url('عجله الحظ.png');"></div>
+                <div class="game-info"><h3>عجلة الحظ</h3><span>Spin & Win</span></div>
+            </div>
+            <div class="game-card" onclick="location.href='roulette.html'">
+                <div class="game-img" style="background-image: url('روليت.jpg');"></div>
+                <div class="game-info"><h3>الروليت</h3><span>طاولة الأغنياء</span></div>
+            </div>
+            <div class="game-card" onclick="location.href='poker.html'">
+                <div class="game-img" style="background-image: url('بوكر.jpg');"></div>
+                <div class="game-info"><h3>بوكر لايف</h3><span>تحدى المحترفين</span></div>
+            </div>
+        </div>
+
+        <div class="section-title"><i class="fas fa-futbol"></i> مراهنات رياضية</div>
+        <div class="games-scroll-container">
+            <div class="game-card" onclick="location.href='sports.html'">
+                <div class="game-img" style="background-image: url('كوره.jpg');"><div class="multiplier-badge">LIVE</div></div>
+                <div class="game-info"><h3>محاكاه مبارايات</h3><span>توقعات مباشرة</span></div>
+            </div>
+            <div class="game-card" onclick="location.href='penalty.html'">
+                <div class="game-img" style="background-image: url('ضربات جزاء.jpg');"></div>
+                <div class="game-info"><h3>ضربات جزاء</h3><span>سدد في المرمى</span></div>
+            </div>
+            <div class="game-card" onclick="location.href='horse.html'">
+                <div class="game-img" style="background-image: url('خيول.jpg');"></div>
+                <div class="game-info"><h3>سباق خيول</h3><span>السرعة والربح</span></div>
+            </div>
+        </div>
+
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="home.html" class="nav-item active"><i class="fas fa-house"></i><span>الرئيسية</span></a>
+        <a href="wallet.html" class="nav-item"><i class="fas fa-wallet"></i><span>المحفظة</span></a>
+        <a href="gifts.html" class="nav-item"><i class="fas fa-gift"></i><span>هدايا</span></a>
+        <a href="profile.html" class="nav-item"><i class="fas fa-user-gear"></i><span>حسابي</span></a>
+    </nav>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+    import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAzcP_T8x5ouwwKkhadtBTdsUxk3XqwJec",
+        authDomain: "vexa-4b2fb.firebaseapp.com",
+        projectId: "vexa-4b2fb",
+        appId: "1:977620445308:web:fec22230e1fbb30c8881f9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            onSnapshot(doc(db, "users", user.uid), (doc) => {
+                if (doc.exists()) {
+                    const balance = doc.data().walletBalance || 0;
+                    document.getElementById('top-balance').innerText = balance.toFixed(2);
+                }
+            });
+        } else {
+            window.location.href = "index.html";
+        }
+    });
+</script>
+
+
+<div id="install-banner" style="display: none; position: fixed; bottom: 20px; left: 10px; right: 10px; background: #0f172a; border: 2px solid #f59e0b; border-radius: 15px; padding: 12px; z-index: 9999; align-items: center; justify-content: space-between; box-shadow: 0 10px 25px rgba(0,0,0,0.5); animation: slideUp 0.3s ease-out;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <img src="https://cdn-icons-png.flaticon.com/512/10300/10300301.png" width="45" height="45" style="border-radius: 10px;">
+        <div style="text-align: right;">
+            <div style="font-weight: 900; color: white; font-size: 16px;">Win100</div>
+            <div style="font-size: 11px; color: #94a3b8;">ثبت التطبيق لتجربة أسرع ⚡</div>
+        </div>
+    </div>
+    <button id="install-btn" style="background: #f59e0b; color: #000; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 900; font-size: 14px; cursor: pointer;">تثبيت</button>
+</div>
+
+<style>
+@keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+</style>
+
+<script>
+  let deferredPrompt;
+  const banner = document.getElementById('install-banner');
+
+  // 1. تسجيل الـ Service Worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
+
+  // 2. منطق ظهور شريط التثبيت
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    banner.style.display = 'flex';
+  });
+
+  document.getElementById('install-btn').addEventListener('click', async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') banner.style.display = 'none';
+      deferredPrompt = null;
+    }
+  });
+</script>
+
+
+</body>
+</html>

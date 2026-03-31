@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محفظة وين 100 | Win100 Wallet</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #f59e0b; 
+            --primary-glow: rgba(245, 158, 11, 0.3);
+            --bg-dark: #020617;
+            --card-bg: rgba(30, 41, 59, 0.4);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --glass-border: rgba(245, 158, 11, 0.2);
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: radial-gradient(circle at top right, #0f172a, #020617);
+            background-attachment: fixed;
+            color: var(--text-main);
+            margin: 0;
+            padding: 30px 20px 110px;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* كارت الرصيد الهيرو */
+        .balance-hero {
+            position: relative;
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.6), rgba(2, 6, 23, 0.8));
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            padding: 40px 25px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+            overflow: hidden;
+            animation: fadeIn 0.8s ease;
+        }
+
+        .balance-hero::before {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.05) 0%, transparent 60%);
+            animation: rotate 12s linear infinite;
+        }
+
+        .balance-hero small { 
+            color: var(--primary); font-size: 13px; font-weight: 700; 
+            text-transform: uppercase; letter-spacing: 2px; position: relative;
+        }
+        
+        .balance-hero h2 { 
+            font-family: 'Inter', sans-serif;
+            font-size: 42px; margin: 12px 0; font-weight: 900; color: #fff;
+            text-shadow: 0 0 20px rgba(245, 158, 11, 0.3); position: relative;
+        }
+
+        /* شبكة الأزرار السريعة */
+        .actions-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+            margin-bottom: 35px;
+        }
+        
+        .action-link {
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
+            text-decoration: none; color: var(--text-main); transition: 0.3s;
+        }
+        
+        .action-icon {
+            width: 60px; height: 60px; background: var(--card-bg);
+            border: 1px solid var(--glass-border); border-radius: 22px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; color: var(--primary); backdrop-filter: blur(10px);
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .action-link:hover .action-icon { 
+            background: var(--primary); color: #000; transform: translateY(-5px);
+            box-shadow: 0 15px 30px var(--primary-glow);
+        }
+
+        .action-link span { font-size: 12px; font-weight: 700; color: var(--text-dim); }
+
+        /* سجل العمليات الحقيقي */
+        .section-header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 20px; padding: 0 10px;
+        }
+        .section-header h3 { font-size: 18px; font-weight: 800; margin: 0; border-right: 4px solid var(--primary); padding-right: 10px; }
+        
+        .history-card {
+            background: var(--card-bg); backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border); border-radius: 24px;
+            padding: 18px; display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 14px; transition: 0.3s;
+            animation: slideUp 0.5s ease backwards;
+        }
+
+        .history-info { display: flex; align-items: center; gap: 15px; }
+        .history-icon {
+            width: 48px; height: 48px; background: rgba(15, 23, 42, 0.6);
+            border-radius: 16px; display: flex; align-items: center; justify-content: center;
+            font-size: 18px; border: 1px solid var(--glass-border);
+        }
+        
+        .history-meta b { display: block; font-size: 15px; font-weight: 700; color: #fff; }
+        .history-meta span { font-size: 11px; color: var(--text-dim); }
+
+        .history-values { text-align: left; }
+        .amount { font-family: 'Inter', sans-serif; display: block; font-weight: 800; font-size: 16px; }
+        .status { font-size: 9px; font-weight: 900; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; }
+        .status.completed { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .status.pending { background: rgba(245, 158, 11, 0.1); color: var(--primary); }
+
+        /* القائمة السفلية */
+        .bottom-nav { 
+            position: fixed; bottom: 20px; left: 20px; right: 20px;
+            height: 70px; background: rgba(15, 23, 42, 0.9); 
+            backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 25px;
+            z-index: 1000; display: flex; justify-content: space-around; align-items: center; 
+        }
+        
+        .nav-item { color: var(--text-dim); text-decoration: none; text-align: center; font-size: 11px; }
+        .nav-item.active { color: var(--primary); }
+        .nav-item i { font-size: 22px; display: block; margin-bottom: 4px; }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        #loader { position: fixed; inset: 0; background: var(--bg-dark); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+    </style>
+</head>
+<body>
+
+    <div id="loader"><i class="fas fa-crown fa-spin" style="font-size: 30px; color: var(--primary);"></i></div>
+
+    <div class="balance-hero">
+        <small><i class="fas fa-shield-check"></i> الرصيد الحالي</small>
+        <h2 id="total-egp">0.00 <span style="font-size: 14px; font-weight: 400; color: var(--text-dim);">ج.م</span></h2>
+        <div id="bonus-tag" style="display:none; font-size:11px; color:var(--success); font-weight:700; background:rgba(16, 185, 129, 0.1); padding:4px 12px; border-radius:10px;">
+            <i class="fas fa-arrow-up"></i> بونص نشط
+        </div>
+    </div>
+
+    <div class="actions-grid">
+        <a href="deposit.html" class="action-link">
+            <div class="action-icon"><i class="fas fa-plus-circle"></i></div>
+            <span>شحن</span>
+        </a>
+        <a href="withdraw.html" class="action-link">
+            <div class="action-icon"><i class="fas fa-money-bill-transfer"></i></div>
+            <span>سحب</span>
+        </a>
+        <a href="rewards.html" class="action-link">
+            <div class="action-icon"><i class="fas fa-gift"></i></div>
+            <span>هدايا</span>
+        </a>
+        <a href="support.html" class="action-link">
+            <div class="action-icon"><i class="fas fa-headset"></i></div>
+            <span>الدعم</span>
+        </a>
+    </div>
+
+    <div class="section-header">
+        <h3>سجل العمليات</h3>
+        <a href="history.html" style="color: var(--primary); font-size: 12px; text-decoration: none; font-weight: 700;">عرض الكل</a>
+    </div>
+
+    <div id="history-list">
+        </div>
+
+    <nav class="bottom-nav">
+        <a href="home.html" class="nav-item"><i class="fas fa-house"></i><span>الرئيسية</span></a>
+        <a href="wallet.html" class="nav-item active"><i class="fas fa-wallet"></i><span>المحفظة</span></a>
+        <a href="history.html" class="nav-item"><i class="fas fa-clock-rotate-left"></i><span>السجل</span></a>
+        <a href="profile.html" class="nav-item"><i class="fas fa-user-gear"></i><span>حسابي</span></a>
+    </nav>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+    import { getFirestore, doc, onSnapshot, collection, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAzcP_T8x5ouwwKkhadtBTdsUxk3XqwJec",
+        authDomain: "vexa-4b2fb.firebaseapp.com",
+        projectId: "vexa-4b2fb",
+        appId: "1:977620445308:web:fec22230e1fbb30c8881f9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    onAuthStateChanged(auth, (user) => {
+        if(user) {
+            startBalanceListener(user.uid);
+            startHistoryListener(user.uid);
+        } else {
+            window.location.href = 'index.html';
+        }
+    });
+
+    function startBalanceListener(uid) {
+        onSnapshot(doc(db, "users", uid), (snap) => {
+            if(snap.exists()) {
+                const data = snap.data();
+                const balance = data.walletBalance || 0;
+                document.getElementById('total-egp').innerHTML = `${balance.toLocaleString('en-US', {minimumFractionDigits: 2})} <span style="font-size: 16px;">ج.م</span>`;
+                
+                if(data.hasBonus) document.getElementById('bonus-tag').style.display = 'inline-block';
+            }
+            document.getElementById('loader').style.display = 'none';
+        });
+    }
+
+    function startHistoryListener(uid) {
+        const historyRef = collection(db, "users", uid, "transactions");
+        const q = query(historyRef, orderBy("timestamp", "desc"), limit(6));
+
+        onSnapshot(q, (snapshot) => {
+            const listContainer = document.getElementById('history-list');
+            
+            if (snapshot.empty) {
+                listContainer.innerHTML = `<div style="text-align:center; padding:50px; opacity:0.3; font-size:13px;">لا توجد عمليات حقيقية مسجلة بعد</div>`;
+                return;
+            }
+
+            listContainer.innerHTML = '';
+            let delay = 0;
+
+            snapshot.forEach((doc) => {
+                const tx = doc.data();
+                const isPositive = ['deposit', 'win', 'bonus'].includes(tx.type);
+                const date = tx.timestamp ? new Date(tx.timestamp.seconds * 1000).toLocaleString('ar-EG', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'جاري...';
+
+                const cardHTML = `
+                    <div class="history-card" style="animation-delay: ${delay}s">
+                        <div class="history-info">
+                            <div class="history-icon" style="color: ${isPositive ? 'var(--success)' : 'var(--danger)'}">
+                                <i class="fas ${getIcon(tx.type)}"></i>
+                            </div>
+                            <div class="history-meta">
+                                <b>${tx.title || 'عملية نظام'}</b>
+                                <span>${date}</span>
+                            </div>
+                        </div>
+                        <div class="history-values">
+                            <span class="amount" style="color: ${isPositive ? 'var(--success)' : 'var(--danger)'}">
+                                ${isPositive ? '+' : '-'}${parseFloat(tx.amount).toFixed(2)}
+                            </span>
+                            <span class="status ${tx.status === 'completed' ? 'completed' : 'pending'}">
+                                ${tx.status === 'completed' ? 'مكتمل' : 'معلق'}
+                            </span>
+                        </div>
+                    </div>
+                `;
+                listContainer.insertAdjacentHTML('beforeend', cardHTML);
+                delay += 0.1;
+            });
+        });
+    }
+
+    function getIcon(type) {
+        const icons = {
+            'deposit': 'fa-money-bill-wave',
+            'withdraw': 'fa-receipt',
+            'win': 'fa-trophy',
+            'loss': 'fa-gamepad',
+            'bonus': 'fa-gift'
+        };
+        return icons[type] || 'fa-exchange-alt';
+    }
+</script>
+</body>
+</html>

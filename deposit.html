@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Win100 | إيداع ملكي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root { 
+            --primary: #f59e0b; /* الذهبي الملكي */
+            --primary-glow: rgba(245, 158, 11, 0.3);
+            --bg-dark: #020617; 
+            --card-bg: rgba(30, 41, 59, 0.5); 
+            --text-dim: #94a3b8; 
+            --success: #10b981; 
+            --glass-border: rgba(245, 158, 11, 0.2);
+        }
+        
+        body { 
+            font-family: 'Cairo', sans-serif; 
+            background: radial-gradient(circle at top right, #0f172a, #020617);
+            background-attachment: fixed;
+            color: white; margin: 0; padding: 25px 20px 50px; 
+            min-height: 100vh;
+        }
+        
+        .deposit-card {
+            background: var(--card-bg); 
+            backdrop-filter: blur(20px); 
+            border-radius: 30px;
+            padding: 30px; 
+            border: 1px solid var(--glass-border);
+            max-width: 480px; 
+            margin: 0 auto;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            animation: fadeIn 0.6s ease;
+        }
+
+        .payment-method {
+            background: rgba(245, 158, 11, 0.05); 
+            border: 1px dashed var(--primary);
+            border-radius: 22px; 
+            padding: 22px; 
+            text-align: center; 
+            margin-bottom: 25px;
+        }
+
+        .copy-box {
+            background: #0f172a; 
+            padding: 15px; 
+            border-radius: 15px;
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-top: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .bonus-alert {
+            background: linear-gradient(90deg, rgba(245, 158, 11, 0.2), transparent);
+            border-right: 4px solid var(--primary); 
+            padding: 12px 15px; 
+            border-radius: 12px;
+            font-size: 12px; 
+            margin-bottom: 20px; 
+            display: none;
+            color: #fff;
+            animation: pulse 2s infinite;
+        }
+
+        .input-group { margin-bottom: 22px; }
+        .input-group label { display: block; font-size: 14px; color: var(--text-dim); margin-bottom: 10px; font-weight: 700; }
+        
+        input {
+            width: 100%; padding: 18px; 
+            background: rgba(15, 23, 42, 0.8); 
+            border: 1px solid var(--glass-border);
+            border-radius: 18px; 
+            color: #fff; 
+            font-family: 'Cairo'; 
+            outline: none; 
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        input:focus { border-color: var(--primary); box-shadow: 0 0 15px var(--primary-glow); }
+
+        .notice {
+            font-size: 11px; 
+            color: var(--text-dim); 
+            background: rgba(255,255,255,0.02);
+            padding: 12px; 
+            border-radius: 12px; 
+            border: 1px solid rgba(255,255,255,0.05);
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .btn-deposit {
+            width: 100%; padding: 18px; 
+            border-radius: 20px; 
+            border: none;
+            background: linear-gradient(135deg, var(--primary), #d97706);
+            color: #000; 
+            font-weight: 900; 
+            font-size: 17px;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(245, 158, 11, 0.2);
+            transition: 0.3s;
+        }
+
+        .btn-deposit:active { transform: scale(0.96); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { 0% { opacity: 0.8; } 50% { opacity: 1; } 100% { opacity: 0.8; } }
+    </style>
+</head>
+<body>
+
+    <div class="deposit-card">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <i class="fas fa-coins fa-3x" style="color: var(--primary); filter: drop-shadow(0 0 10px var(--primary-glow));"></i>
+            <h2 style="margin: 15px 0 5px; font-weight: 900;">إيداع رصيد</h2>
+            <p style="color: var(--text-dim); font-size: 13px;">اشحن محفظتك وانطلق في عالم Win100</p>
+        </div>
+
+        <div id="bonus-banner" class="bonus-alert">
+            <i class="fas fa-crown"></i> نظام البرومو مفعل: بونص <b>200%</b> بانتظارك!
+        </div>
+
+        <div class="payment-method">
+            <span style="font-size: 13px; color: var(--text-dim); font-weight: 700;">رقم التحويل (فودافون كاش):</span>
+            <div class="copy-box">
+                <b id="wallet-num" style="font-family: 'Inter'; font-size: 18px; letter-spacing: 1px; color: var(--primary);">01064170259</b>
+                <i class="fas fa-copy" style="color: var(--primary); cursor: pointer; font-size: 18px;" onclick="copyNum()"></i>
+            </div>
+        </div>
+
+        <div class="notice">
+            <i class="fas fa-shield-halved" style="color: var(--primary);"></i>
+            يرجى التأكد من المبلغ والرقم المحول منه. تتم مراجعة العمليات يدوياً (خلال 5-15 دقيقة).
+        </div>
+
+        <div class="input-group">
+            <label><i class="fas fa-money-bill-wave"></i> المبلغ المحول (ج.م)</label>
+            <input type="number" id="dep-amount" placeholder="مثال: 100">
+        </div>
+
+        <div class="input-group">
+            <label><i class="fas fa-phone-alt"></i> الرقم الذي قمت بالتحويل منه</label>
+            <input type="tel" id="sender-num" placeholder="01xxxxxxxxx">
+        </div>
+
+        <button class="btn-deposit" id="submit-deposit">تأكيد الإيداع الملكي</button>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAzcP_T8x5ouwwKkhadtBTdsUxk3XqwJec",
+        authDomain: "vexa-4b2fb.firebaseapp.com",
+        projectId: "vexa-4b2fb",
+        appId: "1:977620445308:web:fec22230e1fbb30c8881f9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let userPromoCode = "OFFICIAL";
+
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (userDoc.exists()) {
+                userPromoCode = userDoc.data().referredBy || "OFFICIAL";
+                if(userPromoCode !== "OFFICIAL" && userPromoCode !== "DIRECT") {
+                    document.getElementById('bonus-banner').style.display = 'block';
+                }
+            }
+        } else {
+            window.location.href = 'index.html';
+        }
+    });
+
+    window.copyNum = () => {
+        const num = document.getElementById('wallet-num').innerText;
+        navigator.clipboard.writeText(num);
+        Swal.fire({ 
+            title: 'تم النسخ!', 
+            toast: true, 
+            position: 'top', 
+            showConfirmButton: false, 
+            timer: 2000, 
+            icon: 'success',
+            background: '#f59e0b',
+            color: '#000'
+        });
+    }
+
+    document.getElementById('submit-deposit').onclick = async () => {
+        const amount = parseFloat(document.getElementById('dep-amount').value);
+        const sender = document.getElementById('sender-num').value.trim();
+        const user = auth.currentUser;
+
+        if (!amount || amount < 10 || !sender) {
+            return Swal.fire({
+                title: 'بيانات ناقصة',
+                text: 'أقل مبلغ للإيداع 10 ج.م، يرجى كتابة الرقم والمبلغ بدقة.',
+                icon: 'warning',
+                confirmButtonColor: '#f59e0b',
+                background: '#020617',
+                color: '#fff'
+            });
+        }
+
+        Swal.fire({ 
+            title: 'جاري إرسال الطلب...', 
+            background: '#020617',
+            color: '#fff',
+            allowOutsideClick: false, 
+            didOpen: () => Swal.showLoading() 
+        });
+
+        try {
+            // الإصلاح: نرسل البيانات لكولكشن transactions الموحد لكي يراها الأدمن
+            await addDoc(collection(db, "transactions"), { 
+                uid: user.uid,
+                type: 'deposit',
+                amount: amount,
+                sender_phone: sender, // هذا الحقل الذي سيبحث عنه الأدمن
+                status: 'pending', 
+                referredBy: userPromoCode,
+                timestamp: serverTimestamp(),
+                appliedBonus: (userPromoCode !== "OFFICIAL" && userPromoCode !== "DIRECT") ? "200%" : "0%"
+            });
+
+            await Swal.fire({
+                title: 'تم إرسال الطلب',
+                text: 'ستصلك رسالة تأكيد فور مراجعة التحويل من قبل الإدارة.',
+                icon: 'success',
+                confirmButtonColor: '#f59e0b',
+                background: '#020617',
+                color: '#fff'
+            });
+            
+            window.location.href = 'home.html';
+
+        } catch (e) {
+            console.error(e);
+            Swal.fire({
+                title: 'خطأ',
+                text: 'حدثت مشكلة: ' + e.message,
+                icon: 'error',
+                background: '#020617',
+                color: '#fff'
+            });
+        }
+    };
+</script>
+</body>
+</html>

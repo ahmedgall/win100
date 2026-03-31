@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Win100 | سحب الأرباح</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root { 
+            --primary: #f59e0b; /* الذهبي الملكي */
+            --primary-glow: rgba(245, 158, 11, 0.3);
+            --bg-dark: #020617; 
+            --card-bg: rgba(30, 41, 59, 0.5); 
+            --text-dim: #94a3b8; 
+            --success: #10b981; 
+            --danger: #ef4444;
+            --glass-border: rgba(245, 158, 11, 0.2);
+        }
+        
+        body { 
+            font-family: 'Cairo', sans-serif; 
+            background: radial-gradient(circle at top right, #0f172a, #020617);
+            background-attachment: fixed;
+            color: white; margin: 0; padding: 25px 20px 110px; 
+            min-height: 100vh;
+        }
+
+        .withdraw-card { 
+            background: var(--card-bg); 
+            backdrop-filter: blur(20px); 
+            border-radius: 30px; 
+            padding: 30px; 
+            border: 1px solid var(--glass-border); 
+            max-width: 480px; 
+            margin: 20px auto; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            animation: fadeIn 0.6s ease;
+        }
+
+        .balance-box { 
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(2, 6, 23, 0.8)); 
+            border-radius: 24px; 
+            padding: 25px; 
+            text-align: center; 
+            margin-bottom: 30px; 
+            border: 1px solid var(--glass-border);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .balance-box::before {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.05) 0%, transparent 70%);
+        }
+
+        .balance-box b { 
+            font-size: 38px; 
+            color: var(--primary); 
+            font-family: 'Inter', sans-serif;
+            text-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        .input-group { margin-bottom: 22px; }
+        .input-group label { display: block; font-size: 14px; color: var(--text-dim); margin-bottom: 10px; font-weight: 700; }
+        
+        input { 
+            width: 100%; padding: 18px; 
+            background: rgba(15, 23, 42, 0.8); 
+            border: 1px solid var(--glass-border); 
+            border-radius: 18px; 
+            color: white; 
+            outline: none; 
+            box-sizing: border-box; 
+            font-family: 'Cairo';
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        input:focus { border-color: var(--primary); box-shadow: 0 0 15px var(--primary-glow); }
+
+        .calc-box { 
+            background: rgba(0,0,0,0.3); 
+            padding: 20px; 
+            border-radius: 20px; 
+            margin-bottom: 25px; 
+            font-size: 14px; 
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .btn-withdraw { 
+            width: 100%; padding: 18px; 
+            border-radius: 20px; 
+            border: none; 
+            background: linear-gradient(135deg, var(--primary), #d97706); 
+            color: #000; 
+            font-weight: 900; 
+            font-size: 17px;
+            cursor: pointer; 
+            box-shadow: 0 10px 20px rgba(245, 158, 11, 0.2);
+            transition: 0.3s; 
+        }
+
+        .btn-withdraw:active { transform: scale(0.96); }
+        .btn-withdraw:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <div class="withdraw-card">
+        <div style="text-align: center; margin-bottom: 25px;">
+            <i class="fas fa-hand-holding-dollar fa-3x" style="color: var(--primary); filter: drop-shadow(0 0 10px var(--primary-glow));"></i>
+            <h2 style="margin: 15px 0 5px; font-weight: 900;">سحب كاش</h2>
+            <p style="color: var(--text-dim); font-size: 13px;">حول أرباحك إلى كاش حقيقي فوراً</p>
+        </div>
+
+        <div class="balance-box">
+            <span style="color:var(--text-dim); font-size: 13px; font-weight: 700;">رصيدك القابل للسحب</span><br>
+            <b id="display-balance">0.00</b> <small style="color: var(--primary); font-weight: 700;">ج.م</small>
+        </div>
+
+        <div class="input-group">
+            <label><i class="fas fa-wallet" style="margin-left: 5px;"></i>المبلغ المراد سحبه</label>
+            <input type="number" id="withdraw-amount" placeholder="أدخل المبلغ..">
+        </div>
+
+        <div class="calc-box">
+            <div style="display:flex; justify-content:space-between">
+                <span>رسوم الخدمة (1%):</span>
+                <span id="fee-text" style="color:var(--danger); font-weight: 700;">0.00 ج.م</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-top:12px; font-weight:900; font-size: 16px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px;">
+                <span>صافي المبلغ المستلم:</span>
+                <span id="net-text" style="color:var(--success)">0.00 ج.م</span>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label><i class="fas fa-university" style="margin-left: 5px;"></i>رقم الاستلام (كاش / انستا باي)</label>
+            <input type="text" id="payout-details" placeholder="مثال: 010xxxxxxxx أو معرف InstaPay">
+        </div>
+
+        <button class="btn-withdraw" id="submit-btn">تأكيد طلب السحب الملكي</button>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+    import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAzcP_T8x5ouwwKkhadtBTdsUxk3XqwJec",
+        authDomain: "vexa-4b2fb.firebaseapp.com",
+        projectId: "vexa-4b2fb",
+        appId: "1:977620445308:web:fec22230e1fbb30c8881f9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let currentBalance = 0;
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            onSnapshot(doc(db, "users", user.uid), (snap) => {
+                if (snap.exists()) {
+                    currentBalance = snap.data().walletBalance || 0;
+                    document.getElementById('display-balance').innerText = currentBalance.toLocaleString('en-US', {minimumFractionDigits: 2});
+                }
+            });
+        } else {
+            window.location.href = 'index.html';
+        }
+    });
+
+    document.getElementById('withdraw-amount').addEventListener('input', (e) => {
+        const amt = parseFloat(e.target.value) || 0;
+        const fee = amt * 0.01;
+        document.getElementById('fee-text').innerText = fee.toFixed(2) + " ج.م";
+        document.getElementById('net-text').innerText = (amt - fee > 0 ? (amt - fee).toFixed(2) : "0.00") + " ج.م";
+    });
+
+    document.getElementById('submit-btn').onclick = async () => {
+        const amount = parseFloat(document.getElementById('withdraw-amount').value);
+        const details = document.getElementById('payout-details').value.trim();
+
+        if (!amount || amount < 10) return Swal.fire({ title: 'تنبيه', text: 'أقل مبلغ للسحب هو 10 ج.م', icon: 'warning', confirmButtonColor: '#f59e0b' });
+        if (amount > currentBalance) return Swal.fire({ title: 'رصيد غير كافٍ', text: 'عفواً، رصيدك الحالي لا يسمح بهذا السحب', icon: 'error', confirmButtonColor: '#f59e0b' });
+        if (!details) return Swal.fire({ title: 'بيانات ناقصة', text: 'يرجى إدخال رقم الاستلام', icon: 'warning', confirmButtonColor: '#f59e0b' });
+
+        const confirm = await Swal.fire({ 
+            title: 'تأكيد السحب؟', 
+            text: `سيتم خصم ${amount} ج.م من محفظتك الملكية`, 
+            icon: 'question', 
+            showCancelButton: true,
+            confirmButtonText: 'تأكيد السحب',
+            cancelButtonText: 'إلغاء',
+            confirmButtonColor: '#f59e0b',
+            background: '#020617',
+            color: '#fff'
+        });
+
+        if (confirm.isConfirmed) {
+            Swal.fire({ title: 'جاري تأمين العملية...', background: '#020617', color: '#fff', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const userRef = doc(db, "users", auth.currentUser.uid);
+                    const userSnap = await transaction.get(userRef);
+                    
+                    const dbBalance = userSnap.data().walletBalance || 0;
+                    if (dbBalance < amount) throw "رصيد غير كافٍ فعلياً";
+
+                    transaction.update(userRef, { walletBalance: dbBalance - amount });
+                    
+                    const requestRef = collection(db, "withdrawRequests");
+                    await addDoc(requestRef, {
+                        uid: auth.currentUser.uid,
+                        username: userSnap.data().username || "عضو Win100",
+                        amount: amount,
+                        netReceived: amount * 0.99,
+                        method: details,
+                        status: 'pending',
+                        type: 'withdraw',
+                        createdAt: serverTimestamp()
+                    });
+                });
+                
+                Swal.fire({ title: 'تم الإرسال!', text: 'طلبك قيد المعالجة، سيتم التحويل خلال دقائق.', icon: 'success', confirmButtonColor: '#f59e0b' });
+                document.getElementById('withdraw-amount').value = '';
+                document.getElementById('payout-details').value = '';
+                
+            } catch (e) {
+                Swal.fire('فشل العملية', 'حدث خطأ غير متوقع: ' + e, 'error');
+            }
+        }
+    };
+</script>
+</body>
+</html>

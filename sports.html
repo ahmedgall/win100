@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>VexaBet | Organized Betting</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root { --gold: #f59e0b; --bg: #020617; --card: #0f172a; --accent: #38bdf8; --red: #ef4444; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        body { background: var(--bg); color: white; padding: 10px; height: 100vh; overflow-x: hidden; display: flex; flex-direction: column; }
+
+        /* الهيدر */
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 5px; }
+        .bal-badge { border: 2px solid var(--gold); padding: 5px 12px; border-radius: 12px; color: var(--gold); font-weight: 900; background: rgba(245,158,11,0.1); font-size: 14px; }
+
+        /* منطقة المباراة */
+        .match-area {
+            background: linear-gradient(180deg, #1e293b 0%, #020617 100%);
+            border-radius: 24px; padding: 20px; border: 1px solid rgba(255,255,255,0.05);
+            text-align: center; margin-bottom: 15px;
+        }
+        .score-row { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; }
+        .team-unit { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .svg-logo { width: 50px; height: 50px; filter: drop-shadow(0 0 8px rgba(255,255,255,0.1)); }
+        .score-val { font-size: 45px; font-weight: 900; letter-spacing: 2px; }
+
+        /* تنظيم الرهانات */
+        .bet-container { flex: 1; overflow-y: auto; padding-bottom: 100px; }
+        .market-group { background: #0f172a; border-radius: 15px; padding: 12px; margin-bottom: 15px; border: 1px solid #1e293b; }
+        .market-header { font-size: 13px; color: var(--accent); font-weight: 900; margin-bottom: 10px; border-bottom: 1px solid #1e293b; padding-bottom: 5px; }
+        
+        .odds-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        .odd-item { background: #1e293b; border-radius: 10px; padding: 10px 5px; text-align: center; border: 2px solid transparent; transition: 0.2s; }
+        .odd-item.active { border-color: var(--gold); background: rgba(245,158,11,0.1); }
+        .odd-item .lbl { font-size: 10px; color: #94a3b8; display: block; }
+        .odd-item .val { font-size: 14px; font-weight: 900; color: var(--gold); }
+
+        /* التحكم السفلي */
+        .footer { position: fixed; bottom: 0; left: 0; width: 100%; background: #0f172a; padding: 15px 20px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; gap: 10px; }
+        .input-box { flex: 1; background: #020617; border: 1px solid #334155; padding: 12px; border-radius: 10px; color: var(--gold); font-weight: 900; text-align: center; }
+        .btn-bet { flex: 1.5; background: linear-gradient(135deg, #f59e0b, #d97706); color: black; border: none; border-radius: 10px; font-weight: 900; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div style="font-weight:900; font-size: 20px;">VEXA<span>BET</span></div>
+        <div class="bal-badge" id="balance">0.00 EGP</div>
+    </div>
+
+    <div class="match-area">
+        <div id="status" style="font-size: 10px; color: var(--red); font-weight: 900;">بانتظار الرهان</div>
+        <div class="score-row">
+            <div class="team-unit">
+                <div id="h-logo" class="svg-logo"></div>
+                <div id="h-name" style="font-size: 11px;">--</div>
+            </div>
+            <div class="score-val" id="score">0-0</div>
+            <div class="team-unit">
+                <div id="a-logo" class="svg-logo"></div>
+                <div id="a-name" style="font-size: 11px;">--</div>
+            </div>
+        </div>
+        <div id="timer" style="font-size: 12px; color: var(--gold);">00'</div>
+    </div>
+
+    <div class="bet-container">
+        <div class="market-group">
+            <div class="market-header">النتيجة النهائية (1X2)</div>
+            <div class="odds-row">
+                <div class="odd-item" onclick="pick('win','1',1.60)"><span class="lbl">فوز 1</span><span class="val">1.60</span></div>
+                <div class="odd-item" onclick="pick('win','X',3.00)"><span class="lbl">تعادل</span><span class="val">3.00</span></div>
+                <div class="odd-item" onclick="pick('win','2',2.10)"><span class="lbl">فوز 2</span><span class="val">2.10</span></div>
+            </div>
+        </div>
+
+        <div class="market-group">
+            <div class="market-header">أول فريق يسجل هدفاً</div>
+            <div class="odds-row">
+                <div class="odd-item" onclick="pick('first','H',1.75)"><span class="lbl">المضيف</span><span class="val">1.75</span></div>
+                <div class="odd-item" onclick="pick('first','NONE',8.00)"><span class="lbl">لا أحد</span><span class="val">8.00</span></div>
+                <div class="odd-item" onclick="pick('first','A',1.90)"><span class="lbl">الضيف</span><span class="val">1.90</span></div>
+            </div>
+        </div>
+
+        <div class="market-group">
+            <div class="market-header">أهداف (O/U & BTTS)</div>
+            <div class="odds-row">
+                <div class="odd-item" onclick="pick('goals','U2.5',1.40)"><span class="lbl">-2.5 هدف</span><span class="val">1.40</span></div>
+                <div class="odd-item" onclick="pick('goals','O2.5',2.30)"><span class="lbl">+2.5 هدف</span><span class="val">2.30</span></div>
+                <div class="odd-item" onclick="pick('goals','BTTS',1.90)"><span class="lbl">الفريقين سجلوا</span><span class="val">1.90</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <input type="number" id="amt" value="10" class="input-box">
+        <button id="go" class="btn-bet" onclick="play()">تأكيد الرهان 🚀</button>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+    import { getFirestore, doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+
+    const config = { apiKey: "AIzaSyAzcP_T8x5ouwwKkhadtBTdsUxk3XqwJec", authDomain: "vexa-4b2fb.firebaseapp.com", projectId: "vexa-4b2fb", appId: "1:977620445308:web:fec22230e1fbb30c8881f9" };
+    const app = initializeApp(config);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    const teams = [
+        {n:"الأهلي", c:"#ef4444"}, {n:"الزمالك", c:"white"}, {n:"سيتي", c:"#0ea5e9"}, 
+        {n:"ليفربول", c:"#b91c1c"}, {n:"ريال مدريد", c:"#f8fafc"}, {n:"برشلونة", c:"#1e3a8a"}
+    ];
+
+    let bal = 0, uid = "", bet = { m: '', c: '', o: 0 }, live = false;
+
+    function svg(c) { return `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="${c}" stroke="#334155" stroke-width="3"/></svg>`; }
+
+    onAuthStateChanged(auth, user => {
+        if(user) {
+            uid = user.uid;
+            onSnapshot(doc(db,"users",uid), d => {
+                bal = d.data()?.walletBalance || 0;
+                document.getElementById('balance').innerText = bal.toFixed(2) + " EGP";
+            });
+            reset();
+        }
+    });
+
+    function reset() {
+        const h = teams[Math.floor(Math.random()*teams.length)];
+        let a = teams[Math.floor(Math.random()*teams.length)];
+        while(a.n === h.n) a = teams[Math.floor(Math.random()*teams.length)];
+        document.getElementById('h-name').innerText = h.n;
+        document.getElementById('h-logo').innerHTML = svg(h.c);
+        document.getElementById('a-name').innerText = a.n;
+        document.getElementById('a-logo').innerHTML = svg(a.c);
+        document.getElementById('score').innerText = "0-0";
+        document.getElementById('timer').innerText = "00'";
+        live = false;
+    }
+
+    window.pick = (m, c, o) => {
+        if(live) return;
+        document.querySelectorAll('.odd-item').forEach(i => i.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        bet = { m, c, o };
+    }
+
+    window.play = async () => {
+        const amt = parseFloat(document.getElementById('amt').value);
+        if(!bet.c || live || amt > bal || amt <= 0) return Swal.fire("خطأ", "تحقق من الرصيد والاختيار", "error");
+
+        live = true;
+        document.getElementById('go').disabled = true;
+        document.getElementById('status').innerText = "LIVE";
+        await updateDoc(doc(db,"users",uid), { walletBalance: increment(-amt) });
+
+        let t = 30, h = 0, a = 0, first = "";
+        const run = setInterval(() => {
+            t--;
+            document.getElementById('timer').innerText = (90 - t*3) + "'";
+            if(Math.random() < 0.08) {
+                if(Math.random() > 0.52) { h++; if(!first) first="H"; }
+                else { a++; if(!first) first="A"; }
+                document.getElementById('score').innerText = h + "-" + a;
+            }
+            if(t <= 0) {
+                clearInterval(run);
+                finish(h, a, first, amt);
+            }
+        }, 1000);
+    }
+
+    async function finish(h, a, f, amt) {
+        let win = false;
+        const res = h>a ? '1' : (a>h ? '2' : 'X');
+        if(bet.m === 'win' && bet.c === res) win = true;
+        if(bet.m === 'first' && bet.c === (f||'NONE')) win = true;
+        if(bet.m === 'goals') {
+            if(bet.c === 'U2.5' && (h+a)<2.5) win = true;
+            if(bet.c === 'O2.5' && (h+a)>2.5) win = true;
+            if(bet.c === 'BTTS' && h>0 && a>0) win = true;
+        }
+
+        if(win) {
+            const p = amt * bet.o;
+            await updateDoc(doc(db,"users",uid), { walletBalance: increment(p) });
+            Swal.fire("فوز!", `ربحت ${p.toFixed(2)} ج.م`, "success");
+        } else {
+            Swal.fire("حظ أوفر", "لم يحالفك الحظ", "error");
+        }
+        document.getElementById('go').disabled = false;
+        document.getElementById('status').innerText = "انتهت";
+        setTimeout(reset, 3000);
+    }
+</script>
+</body>
+</html>

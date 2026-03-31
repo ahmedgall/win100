@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vexa Agent | نظام الشركاء المطور</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root { --primary: #0ea5e9; --bg: #020617; --card: rgba(30, 41, 59, 0.7); --success: #10b981; --accent: #f59e0b; --danger: #ef4444; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: white; padding: 20px; margin: 0; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        
+        /* واجهة الدخول والتسجيل */
+        .auth-container { max-width: 450px; margin: 30px auto; background: var(--card); padding: 30px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .auth-container h2 { text-align: center; margin-bottom: 20px; color: var(--primary); }
+        .auth-container input { width: 100%; padding: 14px; margin: 10px 0; border-radius: 12px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; font-family: 'Cairo'; }
+        
+        /* لوحة التحكم */
+        .dashboard { display: none; animation: fadeIn 0.5s ease; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-box { background: var(--card); padding: 20px; border-radius: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.05); position: relative; overflow: hidden; }
+        .stat-box::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 4px; background: var(--primary); opacity: 0.3; }
+        .stat-box h2 { margin: 10px 0; color: var(--success); font-size: 26px; }
+        .stat-box p { color: #94a3b8; font-size: 14px; margin: 0; }
+
+        .promo-banner { background: linear-gradient(135deg, var(--primary), #6366f1); padding: 20px; border-radius: 20px; text-align: center; margin-bottom: 25px; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); }
+        .withdraw-card { background: rgba(245, 158, 11, 0.05); border: 1px dashed var(--accent); padding: 20px; border-radius: 20px; margin-top: 20px; }
+        
+        .btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: 800; cursor: pointer; transition: 0.3s; font-family: 'Cairo'; font-size: 16px; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-logout { background: var(--danger); width: auto; padding: 8px 20px; margin-bottom: 20px; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="auth-view" class="auth-container">
+        <h2 id="auth-title">دخول الوكلاء</h2>
+        <div id="signup-fields" style="display: none;">
+            <input type="text" id="reg-username" placeholder="اسم المستخدم (بالانجليزي)">
+            <input type="tel" id="reg-cash" placeholder="رقم فودافون كاش للسحب">
+            <input type="text" id="reg-promo" placeholder="كود البرومو اللي عاوزه (مثل: VEXA1)">
+        </div>
+        <input type="email" id="auth-email" placeholder="البريد الإلكتروني">
+        <input type="password" id="auth-pass" placeholder="كلمة المرور">
+        
+        <button class="btn btn-primary" id="btn-action" onclick="handleAuth()">دخول الحساب</button>
+        <p style="text-align:center; margin-top:15px; font-size:14px; color:#94a3b8; cursor:pointer;" onclick="toggleAuth()" id="toggle-text">ليس لديك حساب؟ سجل كوكيل جديد</p>
+    </div>
+
+    <div id="agent-dash" class="dashboard">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1 style="font-size: 24px;">لوحة الوكيل: <span id="agent-name" style="color: var(--primary);">---</span></h1>
+            <button class="btn btn-logout" onclick="logout()">تسجيل خروج</button>
+        </div>
+
+        <div class="promo-banner" onclick="copyPromo()">
+            <p style="margin:0; opacity: 0.8;">رابط الدعوة / كود البرومو الخاص بك</p>
+            <b id="display-promo" style="font-size: 28px; letter-spacing: 2px;">---</b>
+            <div style="font-size: 12px; margin-top: 5px;"><i class="fas fa-copy"></i> اضغط للنسخ</div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-box">
+                <p>متاح للسحب (الأرباح الحالية)</p>
+                <h2 id="current-earning" style="color: var(--accent);">0.00</h2>
+                <small>ج.م</small>
+            </div>
+            <div class="stat-box">
+                <p>إجمالي الأرباح (كل الأوقات)</p>
+                <h2 id="total-earned">0.00</h2>
+                <small>ج.م</small>
+            </div>
+            <div class="stat-box">
+                <p>إجمالي المسجلين</p>
+                <h2 id="total-players" style="color: var(--primary);">0</h2>
+                <small>لاعب</small>
+            </div>
+            <div class="stat-box">
+                <p>تسجيلات أمس</p>
+                <h2 id="yesterday-players">0</h2>
+                <small>لاعب جديد</small>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-box"><p>أرباح الشهر الحالي</p><h2 id="month-now">0.00</h2></div>
+            <div class="stat-box"><p>أرباح الشهر الماضي</p><h2 id="month-last">0.00</h2></div>
+            <div class="stat-box"><p>أرباح السنة الحالية</p><h2 id="year-now">0.00</h2></div>
+            <div class="stat-box"><p>أرباح السنة الماضية</p><h2 id="year-last">0.00</h2></div>
+        </div>
+
+        <div class="withdraw-card">
+            <h3><i class="fas fa-wallet" style="color: var(--accent);"></i> طلب سحب أرباح</h3>
+            <p>سيتم إرسال الأموال إلى: <b id="display-cash" style="color: white;">---</b></p>
+            <div style="display: flex; gap: 10px;">
+                <input type="number" id="withdraw-amount" placeholder="أدخل المبلغ" style="flex:1; padding:12px; border-radius:10px; border:1px solid #334155; background:#020617; color:white;">
+                <button class="btn btn-success" style="width: auto; padding: 0 30px;" onclick="requestWithdraw()">سحب</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, addDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAzcP_T8x5ouwwKkhadtBTdsUxk3XqwJec",
+        authDomain: "vexa-4b2fb.firebaseapp.com",
+        projectId: "vexa-4b2fb",
+        appId: "1:977620445308:web:fec22230e1fbb30c8881f9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let isLoginMode = true;
+    let currentAgent = null;
+
+    window.toggleAuth = () => {
+        isLoginMode = !isLoginMode;
+        document.getElementById('signup-fields').style.display = isLoginMode ? 'none' : 'block';
+        document.getElementById('auth-title').innerText = isLoginMode ? 'دخول الوكلاء' : 'تسجيل وكيل جديد';
+        document.getElementById('btn-action').innerText = isLoginMode ? 'دخول الحساب' : 'إنشاء الحساب';
+        document.getElementById('toggle-text').innerText = isLoginMode ? 'ليس لديك حساب؟ سجل كوكيل جديد' : 'عندك حساب؟ سجل دخولك';
+    }
+
+    window.handleAuth = async () => {
+        const email = document.getElementById('auth-email').value;
+        const pass = document.getElementById('auth-pass').value;
+
+        try {
+            if(isLoginMode) {
+                await signInWithEmailAndPassword(auth, email, pass);
+            } else {
+                const user = document.getElementById('reg-username').value;
+                const cash = document.getElementById('reg-cash').value;
+                const promo = document.getElementById('reg-promo').value.toUpperCase();
+
+                if(!user || !cash || !promo) throw new Error("اكمل كافة البيانات");
+
+                // التأكد من أن البرومو غير مكرر
+                const q = query(collection(db, "users"), where("myPromoCode", "==", promo));
+                const check = await getDocs(q);
+                if(!check.empty) throw new Error("كود البرومو هذا محجوز لوكيل آخر");
+
+                const res = await createUserWithEmailAndPassword(auth, email, pass);
+                await setDoc(doc(db, "users", res.user.uid), {
+                    uid: res.user.uid,
+                    username: user,
+                    email: email,
+                    vodafoneCash: cash,
+                    myPromoCode: promo,
+                    agentEarnings: 0,
+                    totalEarned: 0,
+                    role: 'agent',
+                    createdAt: serverTimestamp()
+                });
+            }
+        } catch(e) { Swal.fire('خطأ', e.message, 'error'); }
+    }
+
+    onAuthStateChanged(auth, (user) => {
+        if(user) {
+            document.getElementById('auth-view').style.display = 'none';
+            initDashboard(user.uid);
+        } else {
+            document.getElementById('auth-view').style.display = 'block';
+            document.getElementById('agent-dash').style.display = 'none';
+        }
+    });
+
+    function initDashboard(uid) {
+        onSnapshot(doc(db, "users", uid), async (snap) => {
+            if(!snap.exists()) return;
+            currentAgent = snap.data();
+            
+            document.getElementById('agent-dash').style.display = 'block';
+            document.getElementById('agent-name').innerText = currentAgent.username;
+            document.getElementById('display-promo').innerText = currentAgent.myPromoCode;
+            document.getElementById('display-cash').innerText = currentAgent.vodafoneCash;
+            document.getElementById('current-earning').innerText = (currentAgent.agentEarnings || 0).toFixed(2);
+            document.getElementById('total-earned').innerText = (currentAgent.totalEarned || 0).toFixed(2);
+            
+            // جلب أعداد المسجلين بكوده
+            const q = query(collection(db, "users"), where("referredBy", "==", currentAgent.myPromoCode));
+            const pSnap = await getDocs(q);
+            document.getElementById('total-players').innerText = pSnap.size;
+
+            // تحديث الإحصائيات الزمنية (من حقول اليوزر أوتوماتيك)
+            document.getElementById('month-now').innerText = (currentAgent.earn_month_now || 0).toFixed(2);
+            document.getElementById('month-last').innerText = (currentAgent.earn_month_last || 0).toFixed(2);
+            document.getElementById('year-now').innerText = (currentAgent.earn_year_now || 0).toFixed(2);
+            document.getElementById('year-last').innerText = (currentAgent.earn_year_last || 0).toFixed(2);
+        });
+    }
+
+    window.requestWithdraw = async () => {
+        const amount = parseFloat(document.getElementById('withdraw-amount').value);
+        if(!amount || amount > currentAgent.agentEarnings || amount < 10) {
+            return Swal.fire('خطأ', 'تأكد من المبلغ (أقل سحب 10 ج.م)', 'error');
+        }
+
+        await addDoc(collection(db, "withdrawRequests"), {
+            uid: auth.currentUser.uid,
+            username: currentAgent.username,
+            amount: amount,
+            method: currentAgent.vodafoneCash,
+            status: 'pending',
+            type: 'agent_commission_withdraw',
+            timestamp: serverTimestamp()
+        });
+
+        await updateDoc(doc(db, "users", auth.currentUser.uid), {
+            agentEarnings: currentAgent.agentEarnings - amount
+        });
+
+        Swal.fire('تم الإرسال', 'سيتم مراجعة طلبك وتحويل المبلغ', 'success');
+    };
+
+    window.logout = () => signOut(auth);
+    window.copyPromo = () => {
+        navigator.clipboard.writeText(currentAgent.myPromoCode);
+        Swal.fire({ title: 'تم النسخ!', toast: true, position: 'top', showConfirmButton: false, timer: 1000, icon: 'success' });
+    }
+</script>
+</body>
+</html>

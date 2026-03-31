@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Win100 | Higher Lower Elite</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root { --gold: #d4af37; --bg: #050505; --card: #1a1a1a; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: white; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+        .header { padding: 15px; display: flex; justify-content: space-between; background: #000; border-bottom: 1px solid #222; }
+        .bal { color: var(--gold); font-weight: 900; border: 1px solid var(--gold); padding: 2px 10px; border-radius: 15px; }
+
+        /* منطقة الكروت */
+        #game-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
+        .card-display { 
+            width: 150px; height: 220px; background: white; border-radius: 15px; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 80px; font-weight: 900; color: #000;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .multiplier-tag { font-size: 24px; color: var(--gold); font-weight: 900; }
+
+        /* التحكم */
+        .controls { background: #111; padding: 20px; border-top: 1px solid #333; border-radius: 25px 25px 0 0; }
+        .bet-input { width: 100%; background: #000; border: 1px solid #333; color: var(--gold); padding: 12px; border-radius: 10px; text-align: center; font-weight: 900; margin-bottom: 15px; }
+        .btn-group { display: flex; gap: 10px; }
+        .btn { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: 900; font-size: 18px; cursor: pointer; }
+        .up { background: #00ff88; color: #000; }
+        .down { background: #ff4d4d; color: #fff; }
+        .cash { background: var(--gold); color: #000; width: 100%; margin-top: 10px; display: none; }
+        .start-btn { background: var(--gold); color: #000; width: 100%; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div style="font-weight:900; color:var(--gold)">WIN100 HI-LO</div>
+        <div class="bal" id="bal">0.00</div>
+    </div>
+
+    <div id="game-area">
+        <div class="multiplier-tag" id="mult-text">المضاعف: 1.00x</div>
+        <div class="card-display" id="card">?</div>
+    </div>
+
+    <div class="controls">
+        <input type="number" id="bet-amt" class="bet-input" value="10">
+        <button id="start-btn" class="btn start-btn">إبدأ الجيم 🃏</button>
+        <div id="play-controls" style="display: none;">
+            <div class="btn-group">
+                <button class="btn up" onclick="play('up')">أعلى ⬆️</button>
+                <button class="btn down" onclick="play('down')">أقل ⬇️</button>
+            </div>
+            <button id="cash-btn" class="btn cash" onclick="cashOut()">إسحب الأرباح</button>
+        </div>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+    import { getFirestore, doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAzcP_T8x5ouwwKkhadtBTdsUxk3XqwJec",
+        authDomain: "vexa-4b2fb.firebaseapp.com",
+        projectId: "vexa-4b2fb",
+        appId: "1:977620445308:web:fec22230e1fbb30c8881f9"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let balance = 0, uid = "", currentCard = 0, currentMult = 1.0, isPlaying = false, winStreak = 0;
+    const cardEl = document.getElementById('card');
+    const startBtn = document.getElementById('start-btn');
+    const playControls = document.getElementById('play-controls');
+
+    onAuthStateChanged(auth, user => {
+        if (user) {
+            uid = user.uid;
+            onSnapshot(doc(db, "users", uid), d => {
+                balance = d.data().walletBalance || 0;
+                document.getElementById('bal').innerText = balance.toFixed(2);
+            });
+        }
+    });
+
+    startBtn.onclick = async () => {
+        const bet = parseFloat(document.getElementById('bet-amt').value);
+        if (bet > balance || bet <= 0) return Swal.fire('خطأ', 'رصيدك لا يكفي', 'error');
+
+        await updateDoc(doc(db, "users", uid), { walletBalance: increment(-bet) });
+        
+        isPlaying = true;
+        winStreak = 0;
+        currentMult = 1.0;
+        currentCard = Math.floor(Math.random() * 12) + 1;
+        
+        updateUI();
+        startBtn.style.display = 'none';
+        playControls.style.display = 'block';
+    };
+
+    window.play = async (choice) => {
+        if (!isPlaying) return;
+
+        let nextCard;
+        // --- خوارزمية "الشركة دايماً كسبانة" ---
+        if (winStreak >= 2 && Math.random() < 0.7) {
+            // لو كسبان مرتين، نطلعه كارت يخسره بالعافية
+            nextCard = choice === 'up' ? 1 : 13;
+        } else {
+            nextCard = Math.floor(Math.random() * 13) + 1;
+        }
+
+        cardEl.style.transform = 'rotateY(90deg)';
+        
+        setTimeout(() => {
+            const isWin = (choice === 'up' && nextCard >= currentCard) || 
+                          (choice === 'down' && nextCard <= currentCard);
+
+            currentCard = nextCard;
+            updateUI();
+            cardEl.style.transform = 'rotateY(0deg)';
+
+            if (isWin) {
+                winStreak++;
+                currentMult += 0.5 * winStreak;
+                document.getElementById('mult-text').innerText = `المضاعف: ${currentMult.toFixed(2)}x`;
+                document.getElementById('cash-btn').style.display = 'block';
+                if(navigator.vibrate) navigator.vibrate(50);
+            } else {
+                gameOver();
+            }
+        }, 300);
+    };
+
+    window.cashOut = async () => {
+        const bet = parseFloat(document.getElementById('bet-amt').value);
+        const win = bet * currentMult;
+        await updateDoc(doc(db, "users", uid), { walletBalance: increment(win) });
+        Swal.fire('كاش أوت!', `كسبت ${win.toFixed(2)} ج.م`, 'success');
+        resetGame();
+    };
+
+    function gameOver() {
+        isPlaying = false;
+        Swal.fire('خسرت!', `الكارت كان ${currentCard}`, 'error');
+        setTimeout(resetGame, 1500);
+    }
+
+    function resetGame() {
+        isPlaying = false;
+        startBtn.style.display = 'block';
+        playControls.style.display = 'none';
+        document.getElementById('cash-btn').style.display = 'none';
+        cardEl.innerText = '?';
+        document.getElementById('mult-text').innerText = `المضاعف: 1.00x`;
+    }
+
+    function updateUI() {
+        cardEl.innerText = currentCard;
+        cardEl.style.color = (currentCard > 10 || currentCard < 3) ? '#ff4d4d' : '#000';
+    }
+</script>
+</body>
+</html>
