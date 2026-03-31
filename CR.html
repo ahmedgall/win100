@@ -2,93 +2,89 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Win100 | Crash Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Win100 | Mobile Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root {
-            --gold: #d4af37; --gold-dark: #aa841e; --bg: #0a0a0a; 
-            --card: #151515; --text: #ffffff; --success: #22c55e; --danger: #ef4444;
+            --gold: #d4af37; --bg: #0a0a0a; --card: #151515; --text: #ffffff;
         }
+
+        * { box-sizing: border-box; touch-action: manipulation; }
 
         body {
             font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text);
-            margin: 0; overflow: hidden; display: flex; flex-direction: column; height: 100vh;
+            margin: 0; padding: 0; display: flex; flex-direction: column;
+            height: 100dvh; /* مهم جداً للموبايل عشان Address Bar */
+            overflow: hidden;
         }
 
-        /* الهيدر الذهبي */
+        /* الهيدر المتجاوب */
         .header {
-            padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;
-            background: linear-gradient(to bottom, #1a1a1a, #0a0a0a); border-bottom: 1px solid var(--gold-dark);
+            height: 60px; padding: 0 15px; display: flex; justify-content: space-between; align-items: center;
+            background: #111; border-bottom: 1px solid #333; z-index: 100;
         }
-        .logo { font-weight: 900; font-size: 24px; color: var(--gold); letter-spacing: 2px; }
+        .logo { font-weight: 900; font-size: 20px; color: var(--gold); }
         .balance-box {
-            background: rgba(212, 175, 55, 0.1); padding: 8px 18px; border-radius: 12px;
-            border: 1px solid var(--gold); display: flex; align-items: center; gap: 8px;
+            background: rgba(212, 175, 55, 0.1); padding: 5px 12px; border-radius: 10px;
+            border: 1px solid var(--gold); font-size: 14px;
         }
-        #user-balance { font-weight: 900; color: var(--gold); font-size: 18px; }
 
-        /* منطقة الطيران - ستايل سينمائي */
+        /* منطقة الطيران - مرنة جداً */
         .game-canvas {
-            flex-grow: 1; position: relative; overflow: hidden;
-            background: radial-gradient(circle at center, #1a1a1a 0%, #050505 100%);
-            display: flex; align-items: center; justify-content: center;
+            flex: 1; position: relative; background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
         }
 
         #multiplier {
-            font-size: clamp(80px, 20vw, 120px); font-weight: 900; z-index: 10;
-            color: var(--text); text-shadow: 0 0 50px rgba(212, 175, 55, 0.3); transition: 0.05s;
+            font-size: 18vw; font-weight: 900; z-index: 10; position: relative;
+            text-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
         }
 
         .plane-wrapper {
-            position: absolute; bottom: 20%; left: 10%; transition: all 0.1s linear; z-index: 5;
+            position: absolute; bottom: 20%; left: 10%; z-index: 5;
+            transition: transform 0.1s linear;
         }
         .plane-icon {
-            font-size: 60px; color: var(--gold); transform: rotate(-45deg);
-            filter: drop-shadow(0 0 20px var(--gold));
+            font-size: 45px; color: var(--gold); transform: rotate(-45deg);
+            filter: drop-shadow(0 0 15px var(--gold));
         }
 
-        /* الدخان خلف الطائرة */
-        .trail {
-            position: absolute; height: 4px; background: linear-gradient(to right, transparent, var(--gold));
-            bottom: 30px; left: -100px; width: 100px; opacity: 0.5; border-radius: 2px;
-        }
-
-        /* لوحة التحكم السفلية */
+        /* لوحة التحكم السفلية - مصممة للإبهام */
         .control-panel {
-            background: var(--card); padding: 30px; border-radius: 40px 40px 0 0;
-            box-shadow: 0 -15px 40px rgba(0,0,0,0.8); border-top: 1px solid #222;
+            background: var(--card); padding: 20px;
+            border-radius: 30px 30px 0 0;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+            display: flex; flex-direction: column; gap: 15px;
         }
 
         .bet-input-wrapper {
-            background: #000; border: 1px solid #333; border-radius: 20px;
-            display: flex; align-items: center; padding: 5px 15px; margin-bottom: 20px;
+            background: #000; border: 1px solid #333; border-radius: 15px;
+            display: flex; align-items: center; padding: 0 15px;
         }
-        .bet-input-wrapper label { color: #666; font-weight: 700; margin-left: 10px; }
+        .bet-input-wrapper label { color: #888; font-size: 14px; white-space: nowrap; }
         input {
-            flex-grow: 1; background: transparent; border: none; color: var(--gold);
-            font-size: 24px; font-weight: 900; text-align: center; outline: none; padding: 10px;
+            width: 100%; background: transparent; border: none; color: var(--gold);
+            font-size: 20px; font-weight: 900; text-align: center; padding: 12px; outline: none;
         }
 
         .btn-action {
-            width: 100%; padding: 20px; border-radius: 20px; border: none;
-            font-size: 24px; font-weight: 900; font-family: 'Cairo'; cursor: pointer;
-            text-transform: uppercase; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            width: 100%; height: 65px; border-radius: 15px; border: none;
+            font-size: 22px; font-weight: 900; font-family: 'Cairo'; cursor: pointer;
+            transition: 0.2s;
         }
 
-        .state-bet { background: var(--gold); color: #000; box-shadow: 0 0 30px rgba(212, 175, 55, 0.4); }
-        .state-bet:hover { transform: scale(1.02); background: #f1c40f; }
+        .state-bet { background: var(--gold); color: #000; }
+        .state-cashout { background: #22c55e; color: #fff; }
         
-        .state-cashout { background: var(--success); color: #fff; box-shadow: 0 0 30px rgba(34, 197, 94, 0.4); }
-        
-        .crashed-text { color: var(--danger) !important; animation: shake 0.5s infinite; }
+        .crashed-text { color: #ef4444 !important; animation: shake 0.3s; }
 
         @keyframes shake {
-            0% { transform: translate(1px, 1px); }
-            20% { transform: translate(-3px, 0px); }
-            100% { transform: translate(1px, -1px); }
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
         }
     </style>
 </head>
@@ -97,23 +93,21 @@
     <div class="header">
         <div class="logo">WIN100</div>
         <div class="balance-box">
-            <i class="fas fa-wallet" style="color: var(--gold);"></i>
             <span id="user-balance">0.00</span>
         </div>
     </div>
 
-    <div class="game-canvas" id="main-stage">
+    <div class="game-canvas">
         <div id="multiplier">1.00x</div>
         <div class="plane-wrapper" id="plane">
             <i class="fas fa-plane plane-icon"></i>
-            <div class="trail"></div>
         </div>
     </div>
 
     <div class="control-panel">
         <div class="bet-input-wrapper">
-            <label>مبلغ الرهان</label>
-            <input type="number" id="bet-amount" value="10" min="1">
+            <label>الرهان</label>
+            <input type="number" id="bet-amount" value="10" inputmode="decimal">
         </div>
         <button id="main-btn" class="btn-action state-bet">ابدأ الرحلة</button>
     </div>
@@ -123,7 +117,6 @@
     import { getFirestore, doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
 
-    // بيانات Firebase بتاعتك
     const firebaseConfig = {
         apiKey: "AIzaSyAzcP_T8x5ouwwKkhadtBTdsUxk3XqwJec",
         authDomain: "vexa-4b2fb.firebaseapp.com",
@@ -135,50 +128,38 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    let balance = 0, uid = "", isFlying = false, currentMult = 1.0, gameLoop;
+    let balance = 0, uid = "", isFlying = false, isProcessing = false, currentMult = 1.0, gameLoop;
 
     onAuthStateChanged(auth, (user) => {
         if (user) {
             uid = user.uid;
             onSnapshot(doc(db, "users", uid), (snap) => {
-                balance = snap.data().walletBalance || 0;
+                balance = snap.data()?.walletBalance || 0;
                 document.getElementById('user-balance').innerText = balance.toFixed(2) + ' ج.م';
             });
         }
     });
-
-    // خوارزمية Win100 الذكية
-    function generateCrashPoint(bet) {
-        const rand = Math.random() * 100;
-        
-        // لو مراهن بمبلغ كبير (أكتر من 50ج)، بنزود احتمالية الخسارة المبكرة
-        if (bet >= 50) {
-            if (rand < 40) return 1.00; // 40% خسارة فورية للمبالغ الكبيرة
-            if (rand < 85) return (Math.random() * 0.5 + 1.1).toFixed(2);
-        } else {
-            if (rand < 10) return 1.00; // 10% خسارة فورية للمبالغ الصغيرة
-            if (rand < 30) return (Math.random() * 0.8 + 1.2).toFixed(2);
-        }
-        
-        if (rand > 97) return (Math.random() * 20 + 10).toFixed(2); // طعم (أرقام عالية جداً)
-        return (Math.random() * 2.5 + 1.5).toFixed(2);
-    }
 
     const mainBtn = document.getElementById('main-btn');
     const multDisplay = document.getElementById('multiplier');
     const plane = document.getElementById('plane');
 
     mainBtn.onclick = async () => {
+        if (isProcessing) return; // حماية الرصيد من الضغط المتكرر
+
         if (!isFlying) {
             const betVal = parseFloat(document.getElementById('bet-amount').value);
-            if (betVal > balance || betVal <= 0) return Swal.fire('خطأ', 'رصيدك لا يكفي!', 'error');
+            if (betVal > balance || betVal <= 0) return Swal.fire('عفواً', 'رصيدك لا يكفي', 'error');
 
+            isProcessing = true;
             isFlying = true;
-            mainBtn.innerText = "كاش أوت (1.00)";
-            mainBtn.className = "btn-action state-cashout";
             
-            await updateDoc(doc(db, "users", uid), { walletBalance: increment(-betVal) });
-            launch(betVal);
+            try {
+                await updateDoc(doc(db, "users", uid), { walletBalance: increment(-betVal) });
+                mainBtn.innerText = "كاش أوت";
+                mainBtn.className = "btn-action state-cashout";
+                launch(betVal);
+            } finally { isProcessing = false; }
         } else {
             takeProfit();
         }
@@ -187,42 +168,33 @@
     function launch(bet) {
         currentMult = 1.0;
         multDisplay.classList.remove('crashed-text');
-        const limit = parseFloat(generateCrashPoint(bet));
+        const limit = Math.random() > 0.5 ? (Math.random() * 2 + 1).toFixed(2) : 1.00; // مثال سريع للخوارزمية
 
         gameLoop = setInterval(() => {
-            let incrementVal = currentMult < 3 ? 0.01 : 0.05;
-            currentMult += incrementVal;
-            
+            currentMult += 0.01;
             multDisplay.innerText = currentMult.toFixed(2) + 'x';
-            mainBtn.innerText = `كاش أوت (${(bet * currentMult).toFixed(2)})`;
-
-            // حركة منحنية واقعية
-            let x = (currentMult - 1) * 20;
-            let y = Math.pow(currentMult - 1, 1.4) * 15;
+            
+            // حركة الموبايل: محدودة بحدود الشاشة
+            let x = Math.min((currentMult - 1) * 30, window.innerWidth * 0.6);
+            let y = Math.min(Math.pow(currentMult - 1, 1.2) * 25, window.innerHeight * 0.4);
             plane.style.transform = `translate(${x}px, ${-y}px)`;
 
-            if (currentMult >= limit) {
-                boom();
-            }
-        }, 70);
+            if (currentMult >= limit) boom();
+        }, 80);
     }
 
     async function takeProfit() {
+        if (isProcessing) return;
+        isProcessing = true;
         clearInterval(gameLoop);
+        
         const bet = parseFloat(document.getElementById('bet-amount').value);
         const win = bet * currentMult;
         
         await updateDoc(doc(db, "users", uid), { walletBalance: increment(win) });
         
-        Swal.fire({
-            title: 'مبروك يا ملك!',
-            text: `كسبت ${win.toFixed(2)} جنيه`,
-            icon: 'success',
-            confirmButtonText: 'كمل السيطرة',
-            confirmButtonColor: '#d4af37',
-            background: '#151515',
-            color: '#fff'
-        });
+        Swal.fire({ title: 'عاش يا بطل!', text: `ربحت ${win.toFixed(2)} ج.م`, icon: 'success' });
+        isProcessing = false;
         reset();
     }
 
@@ -230,14 +202,7 @@
         clearInterval(gameLoop);
         multDisplay.innerText = "CRASHED";
         multDisplay.classList.add('crashed-text');
-        mainBtn.disabled = true;
-        mainBtn.style.opacity = "0.3";
-        
-        setTimeout(() => {
-            reset();
-            mainBtn.disabled = false;
-            mainBtn.style.opacity = "1";
-        }, 2000);
+        reset();
     }
 
     function reset() {
@@ -245,8 +210,7 @@
         isFlying = false;
         mainBtn.innerText = "ابدأ الرحلة";
         mainBtn.className = "btn-action state-bet";
-        plane.style.transform = `translate(0, 0)`;
-        if(multDisplay.innerText !== "CRASHED") multDisplay.innerText = "1.00x";
+        setTimeout(() => { if(!isFlying) plane.style.transform = `translate(0, 0)`; }, 1000);
     }
 </script>
 </body>
