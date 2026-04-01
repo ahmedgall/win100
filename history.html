@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary: #f59e0b; /* الذهبي الملكي */
+            --primary: #f59e0b; 
             --primary-glow: rgba(245, 158, 11, 0.3);
             --bg-dark: #020617;
             --card-bg: rgba(30, 41, 59, 0.4);
@@ -64,16 +64,15 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.3);
         }
 
-        /* تصنيفات الألوان الذهبية والمالية */
         .type-deposit { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2); }
         .type-withdraw { background: rgba(245, 158, 11, 0.1); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.2); }
         .type-send { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); }
         .type-receive { background: rgba(245, 158, 11, 0.1); color: var(--primary); border: 1px solid var(--glass-border); }
-        .type-game { background: rgba(168, 85, 247, 0.1); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.2); }
+        .type-alert { background: rgba(245, 158, 11, 0.15); color: #fff; border: 1px solid var(--primary); }
 
         .info-box { flex-grow: 1; overflow: hidden; }
         .info-box .title { display: block; font-weight: 800; font-size: 16px; color: #fff; margin-bottom: 2px; }
-        .info-box .detail { font-size: 12px; color: var(--text-dim); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .info-box .detail { font-size: 12px; color: var(--text-dim); display: block; line-height: 1.4; }
         
         .status-tag { 
             font-size: 10px; padding: 3px 10px; border-radius: 8px; margin-top: 8px; 
@@ -83,11 +82,10 @@
         .status-completed { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid var(--success); }
         .status-rejected { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid var(--danger); }
 
-        .amount-box { text-align: left; min-width: 100px; }
-        .amount-box .val { display: block; font-weight: 900; font-size: 17px; font-family: 'Inter', sans-serif; letter-spacing: -0.5px; }
+        .amount-box { text-align: left; min-width: 80px; }
+        .amount-box .val { display: block; font-weight: 900; font-size: 17px; }
         .amount-box .date { font-size: 10px; color: var(--text-dim); margin-top: 4px; display: block; }
 
-        /* Bottom Nav (Win100 Master) */
         .bottom-nav { 
             position: fixed; bottom: 20px; left: 20px; right: 20px;
             height: 70px; background: rgba(15, 23, 42, 0.9); 
@@ -106,7 +104,6 @@
             color: var(--primary); width: 45px; height: 45px; border-radius: 15px;
             cursor: pointer; transition: 0.3s;
         }
-        .refresh-btn:active { transform: rotate(180deg); }
     </style>
 </head>
 <body>
@@ -137,7 +134,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-    import { getFirestore, collection, query, where, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+    import { getFirestore, collection, query, where, onSnapshot, orderBy, getDoc, doc } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
 
     const firebaseConfig = {
@@ -151,19 +148,24 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    onAuthStateChanged(auth, (user) => {
-        if (user) { syncAllActivity(user.uid); } 
+    onAuthStateChanged(auth, async (user) => {
+        if (user) { 
+            // جلب رقم الهاتف من بروفايل المستخدم لسحب الإشعارات
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            const userPhone = userDoc.exists() ? userDoc.data().phone : null;
+            syncAllActivity(user.uid, userPhone); 
+        } 
         else { window.location.href = 'index.html'; }
     });
 
-    function syncAllActivity(uid) {
+    function syncAllActivity(uid, phone) {
         const listDiv = document.getElementById('master-list');
         const loader = document.getElementById('loader');
-        let dataStore = { trx: [], req: [], games: [] };
+        let dataStore = { trx: [], req: [], notifications: [] };
 
         const refreshUI = () => {
             loader.style.display = 'none';
-            const allData = [...dataStore.trx, ...dataStore.req, ...dataStore.games];
+            const allData = [...dataStore.trx, ...dataStore.req, ...dataStore.notifications];
             allData.sort((a, b) => (b.timeSort || 0) - (a.timeSort || 0));
             
             if (allData.length === 0) {
@@ -208,6 +210,24 @@
             });
             refreshUI();
         });
+
+        // 3. مراقبة الإشعارات الإدارية (بالهاتف)
+        if (phone) {
+            const qNotif = query(collection(db, "notifications"), where("targetPhone", "==", phone));
+            onSnapshot(qNotif, (snap) => {
+                dataStore.notifications = [];
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    dataStore.notifications.push({
+                        ...d, id: doc.id,
+                        category: 'alert',
+                        timeSort: d.createdAt?.seconds || 0,
+                        displayDate: formatDate(d.createdAt)
+                    });
+                });
+                refreshUI();
+            });
+        }
     }
 
     function renderCard(item, myUid) {
@@ -233,9 +253,14 @@
             detail = `إلى: ${item.phone || 'محفظتك'}`;
             amount = `-${item.amount}`;
             statusHtml = `<span class="status-tag ${statusClass}">${statusLabels[item.status] || 'قيد المعالجة'}</span>`;
+        } else if (item.category === 'alert') {
+            title = item.title || 'إشعار إداري'; icon = 'fa-bell'; colorClass = 'type-alert';
+            detail = item.body || '';
+            amount = 'تنبيه';
         }
 
-        const isPositive = amount.startsWith('+');
+        const isPositive = typeof amount === 'string' && amount.startsWith('+');
+        const colorStyle = item.category === 'alert' ? 'var(--primary)' : (isPositive ? 'var(--success)' : 'var(--danger)');
 
         return `
             <div class="trx-card">
@@ -246,7 +271,7 @@
                     ${statusHtml}
                 </div>
                 <div class="amount-box">
-                    <span class="val" style="color: ${isPositive ? 'var(--success)' : 'var(--danger)'}">${amount}</span>
+                    <span class="val" style="color: ${colorStyle}">${amount}</span>
                     <span class="date">${item.displayDate}</span>
                 </div>
             </div>
