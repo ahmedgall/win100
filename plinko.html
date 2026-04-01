@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Win100 | Hi-Lo Mobile</title>
+    <title>Win100 | Hi-Lo Secure</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
@@ -15,14 +15,12 @@
             height: 100dvh; display: flex; flex-direction: column; overflow: hidden; 
         }
 
-        /* هيدر ثابت */
         .header { 
             height: 60px; padding: 0 15px; display: flex; justify-content: space-between; 
             align-items: center; background: #000; border-bottom: 1px solid #222; flex-shrink: 0;
         }
         .bal { color: var(--gold); font-weight: 900; border: 1px solid var(--gold); padding: 4px 12px; border-radius: 12px; font-size: 14px; }
 
-        /* منطقة اللعب - مرنة */
         #game-area { 
             flex: 1; display: flex; flex-direction: column; align-items: center; 
             justify-content: center; gap: 15px; padding: 10px;
@@ -39,7 +37,6 @@
             position: relative; border: 4px solid #fff;
         }
 
-        /* لوحة التحكم السفلية */
         .controls { 
             background: #111; padding: 20px 20px 30px 20px; 
             border-top: 1px solid #333; border-radius: 30px 30px 0 0; 
@@ -80,7 +77,7 @@
     </div>
 
     <div class="controls">
-        <input type="number" id="bet-amt" class="bet-input" value="10" inputmode="decimal">
+        <input type="number" id="bet-amt" class="bet-input" value="10" inputmode="decimal" placeholder="الحد الأقصى 500">
         
         <button id="start-btn" class="btn start-btn">إبدأ الجيم 🃏</button>
         
@@ -95,7 +92,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-    import { getFirestore, doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+    import { getFirestore, doc, onSnapshot, updateDoc, increment, getDoc } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
 
     const firebaseConfig = {
@@ -110,9 +107,13 @@
     const auth = getAuth(app);
 
     let balance = 0, uid = "", currentCard = 0, currentMult = 1.0, isPlaying = false, isProcessing = false;
+    let currentBet = 0; // تخزين الرهان الحالي في متغير لضمان عدم تغييره أثناء اللعب
     const cardEl = document.getElementById('card');
     const startBtn = document.getElementById('start-btn');
     const playControls = document.getElementById('play-controls');
+
+    // تحديد الحد الأقصى للرهان
+    const MAX_BET = 500;
 
     onAuthStateChanged(auth, user => {
         if (user) {
@@ -126,18 +127,34 @@
 
     startBtn.onclick = async () => {
         if (isProcessing) return;
-        const bet = parseFloat(document.getElementById('bet-amt').value);
-        if (bet > balance || bet <= 0) return Swal.fire('خطأ', 'رصيدك لا يكفي', 'error');
+        
+        let betInput = document.getElementById('bet-amt').value;
+        const bet = parseFloat(betInput);
 
+        // --- نظام حماية الرهان ---
+        if (isNaN(bet) || bet <= 0) return Swal.fire('خطأ', 'أدخل مبلغ صحيح', 'error');
+        if (bet > balance) return Swal.fire('خطأ', 'رصيدك لا يكفي', 'error');
+        if (bet > MAX_BET) return Swal.fire('تنبيه', `الحد الأقصى للرهان هو ${MAX_BET} ج.م`, 'warning');
+        
         isProcessing = true;
         try {
-            await updateDoc(doc(db, "users", uid), { walletBalance: increment(-bet) });
+            // التحقق من الرصيد الحقيقي من السيرفر قبل البدء
+            const userRef = doc(db, "users", uid);
+            const userDoc = await getDoc(userRef);
+            if(userDoc.data().walletBalance < bet) throw new Error("Insufficent Balance");
+
+            await updateDoc(userRef, { walletBalance: increment(-bet) });
+            
+            currentBet = bet; // حفظ الرهان الذي تم قبوله
             isPlaying = true;
             currentMult = 1.0;
             currentCard = Math.floor(Math.random() * 12) + 1;
             cardEl.innerText = currentCard;
             startBtn.style.display = 'none';
             playControls.style.display = 'block';
+            document.getElementById('mult-text').innerText = `المضاعف: 1.00x`;
+        } catch(e) {
+            Swal.fire('خطأ', 'حدثت مشكلة في العملية', 'error');
         } finally { isProcessing = false; }
     };
 
@@ -149,15 +166,17 @@
         cardEl.style.transform = 'scale(0.8) rotateY(90deg)';
         
         setTimeout(() => {
-            const isWin = (choice === 'up' && nextCard >= currentCard) || 
-                          (choice === 'down' && nextCard <= currentCard);
+            // منع فوز التعادل (التعادل خسارة للعميل أضمن للشركة)
+            const isWin = (choice === 'up' && nextCard > currentCard) || 
+                          (choice === 'down' && nextCard < currentCard);
 
             currentCard = nextCard;
             cardEl.innerText = currentCard;
             cardEl.style.transform = 'scale(1) rotateY(0deg)';
 
             if (isWin) {
-                currentMult += 0.4; // مضاعف ثابت أأمن للشركة
+                // تقليل المضاعف قليلاً لزيادة أرباحك أنت (0.3 بدل 0.4)
+                currentMult += 0.3; 
                 document.getElementById('mult-text').innerText = `المضاعف: ${currentMult.toFixed(2)}x`;
                 document.getElementById('cash-btn').style.display = 'block';
                 if(navigator.vibrate) navigator.vibrate(40);
@@ -169,14 +188,20 @@
     };
 
     window.cashOut = async () => {
-        if (isProcessing) return;
+        if (isProcessing || !isPlaying) return;
         isProcessing = true;
-        const bet = parseFloat(document.getElementById('bet-amt').value);
-        const win = bet * currentMult;
-        await updateDoc(doc(db, "users", uid), { walletBalance: increment(win) });
-        Swal.fire('مبروك!', `ربحت ${win.toFixed(2)} ج.م`, 'success');
-        resetGame();
-        isProcessing = false;
+        
+        const win = currentBet * currentMult;
+        
+        try {
+            await updateDoc(doc(db, "users", uid), { walletBalance: increment(win) });
+            Swal.fire('مبروك!', `ربحت ${win.toFixed(2)} ج.م`, 'success');
+            resetGame();
+        } catch(e) {
+            Swal.fire('خطأ', 'حدث خطأ أثناء سحب الأرباح', 'error');
+        } finally {
+            isProcessing = false;
+        }
     };
 
     function gameOver() {
@@ -187,6 +212,7 @@
 
     function resetGame() {
         isPlaying = false;
+        currentBet = 0; // تصفير الرهان
         startBtn.style.display = 'block';
         playControls.style.display = 'none';
         document.getElementById('cash-btn').style.display = 'none';
