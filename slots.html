@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Win100 | Chests Mobile</title>
+    <title>Win100 | Chests Secure</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
@@ -19,131 +19,63 @@
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body { 
-            font-family: 'Cairo', sans-serif; 
-            background: var(--bg); 
-            color: white; 
-            height: 100vh; 
-            height: -webkit-fill-available;
-            overflow: hidden; 
-            display: flex; 
-            flex-direction: column; 
+            font-family: 'Cairo', sans-serif; background: var(--bg); color: white; 
+            height: 100vh; height: -webkit-fill-available; overflow: hidden; 
+            display: flex; flex-direction: column; 
         }
 
-        /* الهيدر */
         .header { 
-            padding: 12px 20px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            background: rgba(15, 23, 42, 0.8); 
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            z-index: 10;
+            padding: 12px 20px; display: flex; justify-content: space-between; 
+            align-items: center; background: rgba(15, 23, 42, 0.8); 
+            backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.05); z-index: 10;
         }
 
         .bal-badge { 
             background: linear-gradient(90deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.05));
-            padding: 6px 14px; 
-            border-radius: 50px; 
-            border: 1px solid var(--gold);
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            padding: 6px 14px; border-radius: 50px; border: 1px solid var(--gold);
+            display: flex; align-items: center; gap: 6px;
         }
 
         .bal-amt { color: var(--gold); font-weight: 900; font-size: 16px; }
 
-        /* منطقة اللعب */
-        #game-area { 
-            flex: 1; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            padding: 15px; 
-        }
+        #game-area { flex: 1; display: flex; align-items: center; justify-content: center; padding: 15px; }
 
-        .grid { 
-            display: grid; 
-            grid-template-columns: repeat(3, 1fr); 
-            gap: 10px; 
-            width: 100%; 
-            max-width: 340px; 
-        }
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 340px; }
         
         .chest { 
-            aspect-ratio: 1; 
-            background: var(--card); 
-            border-radius: 18px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            cursor: pointer; 
-            transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            border: 1px solid rgba(255,255,255,0.05);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            aspect-ratio: 1; background: var(--card); border-radius: 18px; 
+            display: flex; align-items: center; justify-content: center; 
+            cursor: pointer; transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
 
         .chest svg { width: 45%; height: 45%; }
-        
         .chest:active { transform: scale(0.9); }
-        
-        .chest.open { 
-            background: rgba(16, 185, 129, 0.1); 
-            border-color: var(--win); 
-            pointer-events: none; 
-        }
+        .chest.open { background: rgba(16, 185, 129, 0.1); border-color: var(--win); pointer-events: none; }
+        .chest.boom { background: rgba(239, 68, 68, 0.1); border-color: var(--loss); animation: shake 0.4s; }
 
-        .chest.boom { 
-            background: rgba(239, 68, 68, 0.1); 
-            border-color: var(--loss); 
-            animation: shake 0.4s;
-        }
-
-        /* لوحة التحكم السفلية */
         .controls { 
-            background: #0f172a; 
-            padding: 20px 20px calc(25px + var(--safe-bottom)); 
-            border-top: 1px solid rgba(255,255,255,0.1); 
-            border-radius: 30px 30px 0 0; 
+            background: #0f172a; padding: 20px 20px calc(25px + var(--safe-bottom)); 
+            border-top: 1px solid rgba(255,255,255,0.1); border-radius: 30px 30px 0 0; 
             box-shadow: 0 -10px 40px rgba(0,0,0,0.6);
         }
 
         #status { text-align: center; color: #94a3b8; margin-bottom: 15px; font-weight: 700; font-size: 14px; }
 
         .input-group { 
-            background: #020617; 
-            border: 1px solid #1e293b; 
-            border-radius: 16px; 
-            display: flex; 
-            align-items: center; 
-            padding: 4px;
-            margin-bottom: 15px;
+            background: #020617; border: 1px solid #1e293b; border-radius: 16px; 
+            display: flex; align-items: center; padding: 4px; margin-bottom: 15px;
         }
 
         input { 
-            flex: 1; 
-            background: transparent; 
-            border: none; 
-            color: var(--gold); 
-            padding: 12px; 
-            text-align: center; 
-            font-weight: 900; 
-            font-size: 20px; 
-            outline: none; 
+            flex: 1; background: transparent; border: none; color: var(--gold); 
+            padding: 12px; text-align: center; font-weight: 900; font-size: 20px; outline: none; 
         }
 
         .main-btn { 
-            width: 100%; 
-            padding: 16px; 
-            border-radius: 14px; 
-            border: none; 
-            font-weight: 900; 
-            font-size: 18px; 
-            cursor: pointer; 
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+            width: 100%; padding: 16px; border-radius: 14px; border: none; 
+            font-weight: 900; font-size: 18px; cursor: pointer; 
+            display: flex; align-items: center; justify-content: center; gap: 10px;
         }
 
         .start { background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; }
@@ -173,7 +105,7 @@
     <div class="controls">
         <div id="status">أدخل الرهان لفتح الصناديق</div>
         <div class="input-group">
-            <input type="number" id="bet-amt" value="10" inputmode="numeric">
+            <input type="number" id="bet-amt" value="10" inputmode="numeric" placeholder="الحد الأقصى 500">
         </div>
         <button id="main-btn" class="main-btn start">ابدأ اللعب 📦</button>
         <button id="cash-btn" class="main-btn cashout">سحب الأرباح (1.00x)</button>
@@ -181,7 +113,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-    import { getFirestore, doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+    import { getFirestore, doc, onSnapshot, updateDoc, increment, getDoc } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
 
     const firebaseConfig = {
@@ -202,17 +134,22 @@
     };
 
     let balance = 0, uid = "", isPlaying = false, trapIndex = -1, revealed = 0, currentMult = 1.0;
-    const grid = document.getElementById('grid');
+    let currentActiveBet = 0; // حماية الرهان الحالي
+    let isProcessing = false;
+
+    const MAX_BET = 500;
+    const gridEl = document.getElementById('grid');
     const mainBtn = document.getElementById('main-btn');
     const cashBtn = document.getElementById('cash-btn');
     const statusText = document.getElementById('status');
 
+    // إنشاء الشبكة
     for(let i=0; i<9; i++) {
         const d = document.createElement('div');
         d.className = 'chest';
         d.innerHTML = icons.chest;
         d.onclick = () => openChest(i, d);
-        grid.appendChild(d);
+        gridEl.appendChild(d);
     }
 
     onAuthStateChanged(auth, user => {
@@ -226,16 +163,31 @@
     });
 
     mainBtn.onclick = async () => {
-        const bet = parseFloat(document.getElementById('bet-amt').value);
-        if (bet > balance || bet <= 0) return Swal.fire({title:'عفواً', text:'الرصيد غير كافٍ', icon:'warning', background:'#0f172a', color:'#fff'});
+        if(isProcessing) return;
+        const betAmt = parseFloat(document.getElementById('bet-amt').value);
         
-        await updateDoc(doc(db, "users", uid), { walletBalance: increment(-bet) });
-        startGame();
+        if (isNaN(betAmt) || betAmt <= 0) return;
+        if (betAmt > balance) return Swal.fire({title:'عفواً', text:'الرصيد غير كافٍ', icon:'warning', background:'#0f172a', color:'#fff'});
+        if (betAmt > MAX_BET) return Swal.fire({title:'تنبيه', text:`الحد الأقصى للرهان ${MAX_BET} EGP`, icon:'warning', background:'#0f172a', color:'#fff'});
+
+        isProcessing = true;
+        try {
+            const userRef = doc(db, "users", uid);
+            await updateDoc(userRef, { walletBalance: increment(-betAmt) });
+            currentActiveBet = betAmt;
+            startGame();
+        } catch(e) {
+            Swal.fire('خطأ', 'حدثت مشكلة في الاتصال', 'error');
+        } finally {
+            isProcessing = false;
+        }
     };
 
     function startGame() {
         isPlaying = true; revealed = 0; currentMult = 1.0;
+        // القنبلة ثابتة من البداية
         trapIndex = Math.floor(Math.random() * 9);
+        
         document.querySelectorAll('.chest').forEach(c => {
             c.className = 'chest';
             c.innerHTML = icons.chest;
@@ -247,15 +199,14 @@
     }
 
     function openChest(idx, el) {
-        if(!isPlaying || el.classList.contains('open')) return;
-
-        if (revealed >= 2 && Math.random() < 0.4) trapIndex = idx;
+        if(!isPlaying || isProcessing || el.classList.contains('open')) return;
 
         if(idx === trapIndex) {
             gameOver(el);
         } else {
             revealed++;
-            currentMult += (0.2 * (revealed * 0.9));
+            // معادلة ربح متوازنة (أول ضغطة 1.2x، اللي بعدها بتزيد)
+            currentMult = 1.0 + (revealed * 0.25); 
             el.classList.add('open');
             el.innerHTML = icons.coin;
             statusText.innerText = `الربح الحالي: ${currentMult.toFixed(2)}x`;
@@ -265,16 +216,25 @@
     }
 
     function updateCashBtn() {
-        cashBtn.innerText = `سحب الأرباح (${currentMult.toFixed(2)}x)`;
+        cashBtn.innerText = `سحب الأرباح (${(currentActiveBet * currentMult).toFixed(2)} EGP)`;
     }
 
     cashBtn.onclick = async () => {
-        if(!isPlaying) return;
-        const win = parseFloat(document.getElementById('bet-amt').value) * currentMult;
-        await updateDoc(doc(db, "users", uid), { walletBalance: increment(win) });
-        isPlaying = false;
-        Swal.fire({title:'مبروك!', text:`جمعت ${win.toFixed(2)} EGP`, icon:'success', background:'#0f172a', color:'#fff'});
-        resetUI();
+        if(!isPlaying || isProcessing) return;
+        isProcessing = true;
+
+        const winAmount = currentActiveBet * currentMult;
+        
+        try {
+            await updateDoc(doc(db, "users", uid), { walletBalance: increment(winAmount) });
+            isPlaying = false;
+            Swal.fire({title:'مبروك!', text:`جمعت ${winAmount.toFixed(2)} EGP`, icon:'success', background:'#0f172a', color:'#fff'});
+            resetUI();
+        } catch(e) {
+            Swal.fire('خطأ', 'مشكلة في صرف الأرباح', 'error');
+        } finally {
+            isProcessing = false;
+        }
     };
 
     function gameOver(el) {
@@ -282,11 +242,20 @@
         el.classList.add('boom');
         el.innerHTML = icons.bomb;
         if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
-        Swal.fire({title:'بوم!', text:'حظ موفق المرة القادمة', icon:'error', background:'#0f172a', color:'#fff'});
-        setTimeout(resetUI, 1500);
+        
+        // إظهار مكان القنبلة بوضوح للمصداقية (بعد الخسارة)
+        statusText.innerText = "انفجار! حظ أوفر المرة القادمة";
+        
+        setTimeout(() => {
+            Swal.fire({title:'بوم!', text:'حظ موفق المرة القادمة', icon:'error', background:'#0f172a', color:'#fff'});
+            resetUI();
+        }, 800);
     }
 
     function resetUI() {
+        isPlaying = false;
+        isProcessing = false;
+        currentActiveBet = 0;
         mainBtn.style.display = 'flex';
         cashBtn.style.display = 'none';
         statusText.innerText = "أدخل الرهان لفتح الصناديق";
