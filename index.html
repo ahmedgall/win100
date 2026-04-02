@@ -192,16 +192,33 @@
 
 <script>
 
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js')
-    .then((registration) => {
-      console.log('Service Worker Registered!', registration);
-    })
-    .catch((err) => {
-      console.log('Service Worker registration failed: ', err);
-    });
-}
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js"></script>
 
+<script>
+  // بياناتك الحقيقية من الصورة
+  const firebaseConfig = {
+    apiKey: "AIzaSyAzcP_T8x5ouwwKkhadtBTdsUxk3XqwJec",
+    authDomain: "vexa-4b2fb.firebaseapp.com",
+    projectId: "vexa-4b2fb",
+    storageBucket: "vexa-4b2fb.firebasestorage.app",
+    messagingSenderId: "977620445308",
+    appId: "1:977620445308:web:71e66418d95c43dc8881f9"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+
+  // تسجيل السيرفس وركر
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js')
+      .then((registration) => {
+        console.log('Service Worker تم تسجيله بنجاح!', registration);
+      })
+      .catch((err) => {
+        console.log('فشل تسجيل السيرفس وركر: ', err);
+      });
+  }
+</script>
 
 </script>
 
