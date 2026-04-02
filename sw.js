@@ -1,48 +1,76 @@
+// 1. استيراد مكتبات فايربيز
+importScripts('https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js');
+importScripts('https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js');
+
+// 2. إعدادات فايربيز (حط بياناتك هنا)
+firebase.initializeApp({
+    apiKey: "YOUR_API_KEY",
+    projectId: "YOUR_PROJECT_ID",
+    messagingSenderId: "YOUR_MESSAGING_ID",
+    appId: "YOUR_APP_ID"
+});
+
+const messaging = firebase.messaging();
+
+// 3. كود الكاش القديم (عشان اللعبة تفتح Offline)
 const cacheName = 'win100-v1';
-// ضيف هنا كل الملفات المهمة عشان اللعبة تفتح Offline بسرعة
 const assets = [
   '/',
   '/index.html',
   '/manifest.json',
   '/ic.png',
-  '/icon.png',
-  // ضيف ملفات الـ CSS والـ JS بتاعتك هنا لو منفصلة
+  '/icon.png'
 ];
 
-// 1. التثبيت (Install)
+// تثبيت السيرفس وركر وحفظ الملفات في الكاش
 self.addEventListener('install', e => {
-  // إجبار السيرفس وركر الجديد إنه يشتغل فوراً بدل ما يستنى القديم يقفل
   self.skipWaiting();
   e.waitUntil(
     caches.open(cacheName).then(cache => {
-      console.log('Caching assets...');
       return cache.addAll(assets);
     })
   );
 });
 
-// 2. التفعيل (Activate) - لمسح الكاش القديم لو غيرت رقم النسخة (v1 -> v2)
+// تفعيل السيرفس وركر ومسح الكاش القديم
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys => {
       return Promise.all(
         keys.map(key => {
-          if (key !== cacheName) {
-            console.log('Removing old cache:', key);
-            return caches.delete(key);
-          }
+          if (key !== cacheName) return caches.delete(key);
         })
       );
     })
   );
 });
 
-// 3. جلب البيانات (Fetch)
+// جلب الملفات (Offline Mode)
 self.addEventListener('fetch', e => {
   e.respondWith(
     caches.match(e.request).then(res => {
-      // لو الملف موجود في الكاش هاته، لو مش موجود اطلبه من النت
       return res || fetch(e.request);
     })
   );
+});
+
+// 4. التعامل مع الإشعارات في الخلفية (اللي إنت بعته)
+messaging.onBackgroundMessage((payload) => {
+    console.log('Received background message ', payload);
+    const notificationTitle = payload.notification.title;
+    const notificationOptions = {
+        body: payload.notification.body,
+        icon: '/logo.png', 
+        data: { url: payload.data.url || '/' } 
+    };
+
+    self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
+// فتح الرابط لما المستخدم يدوس على الإشعار
+self.addEventListener('notificationclick', function(event) {
+    event.notification.close();
+    event.waitUntil(
+        clients.openWindow(event.notification.data.url)
+    );
 });
