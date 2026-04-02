@@ -2,8 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Win100 | Hi-Lo Secure</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Win100 | Hi-Lo Mobile</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
@@ -12,7 +12,8 @@
         
         body { 
             font-family: 'Cairo', sans-serif; background: var(--bg); color: white; 
-            height: 100dvh; display: flex; flex-direction: column; overflow: hidden; 
+            height: 100vh; height: 100dvh; display: flex; flex-direction: column; 
+            overflow: hidden; position: fixed; width: 100%;
         }
 
         .header { 
@@ -23,29 +24,32 @@
 
         #game-area { 
             flex: 1; display: flex; flex-direction: column; align-items: center; 
-            justify-content: center; gap: 15px; padding: 10px;
+            justify-content: center; gap: clamp(10px, 4vh, 20px); padding: 10px; min-height: 0;
         }
         
-        .multiplier-tag { font-size: 22px; color: var(--gold); font-weight: 900; text-shadow: 0 0 15px rgba(212,175,55,0.3); }
+        .multiplier-tag { font-size: clamp(18px, 5vw, 26px); color: var(--gold); font-weight: 900; text-shadow: 0 0 15px rgba(212,175,55,0.3); }
 
         .card-display { 
-            width: 140px; height: 200px; background: white; border-radius: 20px; 
+            width: clamp(110px, 38vw, 150px); 
+            height: clamp(160px, 55vw, 210px); 
+            background: white; border-radius: 20px; 
             display: flex; align-items: center; justify-content: center; 
-            font-size: 70px; font-weight: 900; color: #000;
+            font-size: clamp(60px, 18vw, 90px); font-weight: 900; color: #000;
             box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 20px rgba(212, 175, 55, 0.2);
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative; border: 4px solid #fff;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative; border: 5px solid #fff;
         }
 
         .controls { 
-            background: #111; padding: 20px 20px 30px 20px; 
+            background: #111; padding: 15px 20px calc(15px + env(safe-area-inset-bottom, 10px)) 20px; 
             border-top: 1px solid #333; border-radius: 30px 30px 0 0; 
             flex-shrink: 0; display: flex; flex-direction: column; gap: 12px;
+            width: 100%; max-width: 500px; margin: 0 auto;
         }
 
         .bet-input { 
             width: 100%; background: #000; border: 1px solid #333; color: var(--gold); 
-            padding: 15px; border-radius: 15px; text-align: center; font-weight: 900; 
+            padding: 14px; border-radius: 15px; text-align: center; font-weight: 900; 
             font-size: 18px; outline: none;
         }
 
@@ -54,7 +58,7 @@
         .btn { 
             flex: 1; height: 60px; border-radius: 15px; border: none; 
             font-weight: 900; font-size: 18px; cursor: pointer; font-family: 'Cairo';
-            transition: 0.2s active;
+            transition: 0.1s;
         }
         .btn:active { transform: scale(0.95); }
 
@@ -62,6 +66,8 @@
         .down { background: #ef4444; color: #fff; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); }
         .start-btn, .cash { background: var(--gold); color: #000; width: 100%; height: 65px; font-size: 20px; }
 
+        /* تعديلات Swal للموبايل */
+        .swal2-popup { border-radius: 25px !important; background: #151515 !important; color: white !important; font-size: 14px !important; }
     </style>
 </head>
 <body>
@@ -95,11 +101,12 @@
     import { getFirestore, doc, onSnapshot, updateDoc, increment, getDoc } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
 
+    // البيانات الحقيقية من صورك يا إمبراطور
     const firebaseConfig = {
         apiKey: "AIzaSyAzcP_T8x5ouwwKkhadtBTdsUxk3XqwJec",
         authDomain: "vexa-4b2fb.firebaseapp.com",
         projectId: "vexa-4b2fb",
-        appId: "1:977620445308:web:fec22230e1fbb30c8881f9"
+        appId: "1:977620445308:web:71e66418d95c43dc8881f9"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -107,12 +114,10 @@
     const auth = getAuth(app);
 
     let balance = 0, uid = "", currentCard = 0, currentMult = 1.0, isPlaying = false, isProcessing = false;
-    let currentBet = 0; // تخزين الرهان الحالي في متغير لضمان عدم تغييره أثناء اللعب
+    let currentBet = 0;
     const cardEl = document.getElementById('card');
     const startBtn = document.getElementById('start-btn');
     const playControls = document.getElementById('play-controls');
-
-    // تحديد الحد الأقصى للرهان
     const MAX_BET = 500;
 
     onAuthStateChanged(auth, user => {
@@ -127,25 +132,18 @@
 
     startBtn.onclick = async () => {
         if (isProcessing) return;
-        
-        let betInput = document.getElementById('bet-amt').value;
-        const bet = parseFloat(betInput);
+        let bet = parseFloat(document.getElementById('bet-amt').value);
 
-        // --- نظام حماية الرهان ---
         if (isNaN(bet) || bet <= 0) return Swal.fire('خطأ', 'أدخل مبلغ صحيح', 'error');
         if (bet > balance) return Swal.fire('خطأ', 'رصيدك لا يكفي', 'error');
-        if (bet > MAX_BET) return Swal.fire('تنبيه', `الحد الأقصى للرهان هو ${MAX_BET} ج.م`, 'warning');
+        if (bet > MAX_BET) return Swal.fire('تنبيه', `الحد الأقصى ${MAX_BET} ج.م`, 'warning');
         
         isProcessing = true;
         try {
-            // التحقق من الرصيد الحقيقي من السيرفر قبل البدء
             const userRef = doc(db, "users", uid);
-            const userDoc = await getDoc(userRef);
-            if(userDoc.data().walletBalance < bet) throw new Error("Insufficent Balance");
-
             await updateDoc(userRef, { walletBalance: increment(-bet) });
             
-            currentBet = bet; // حفظ الرهان الذي تم قبوله
+            currentBet = bet;
             isPlaying = true;
             currentMult = 1.0;
             currentCard = Math.floor(Math.random() * 12) + 1;
@@ -166,7 +164,6 @@
         cardEl.style.transform = 'scale(0.8) rotateY(90deg)';
         
         setTimeout(() => {
-            // منع فوز التعادل (التعادل خسارة للعميل أضمن للشركة)
             const isWin = (choice === 'up' && nextCard > currentCard) || 
                           (choice === 'down' && nextCard < currentCard);
 
@@ -175,8 +172,7 @@
             cardEl.style.transform = 'scale(1) rotateY(0deg)';
 
             if (isWin) {
-                // تقليل المضاعف قليلاً لزيادة أرباحك أنت (0.3 بدل 0.4)
-                currentMult += 0.3; 
+                currentMult += 0.3; // ربحك أنت 0.3 زيادة كل مرة
                 document.getElementById('mult-text').innerText = `المضاعف: ${currentMult.toFixed(2)}x`;
                 document.getElementById('cash-btn').style.display = 'block';
                 if(navigator.vibrate) navigator.vibrate(40);
@@ -190,7 +186,6 @@
     window.cashOut = async () => {
         if (isProcessing || !isPlaying) return;
         isProcessing = true;
-        
         const win = currentBet * currentMult;
         
         try {
@@ -198,21 +193,18 @@
             Swal.fire('مبروك!', `ربحت ${win.toFixed(2)} ج.م`, 'success');
             resetGame();
         } catch(e) {
-            Swal.fire('خطأ', 'حدث خطأ أثناء سحب الأرباح', 'error');
-        } finally {
-            isProcessing = false;
-        }
+            Swal.fire('خطأ', 'فشل سحب الأرباح', 'error');
+        } finally { isProcessing = false; }
     };
 
     function gameOver() {
         isPlaying = false;
-        Swal.fire('خسرت!', `الكارت كان ${currentCard}`, 'error');
+        Swal.fire('خسرت!', `الكارت طلع ${currentCard}`, 'error');
         resetGame();
     }
 
     function resetGame() {
         isPlaying = false;
-        currentBet = 0; // تصفير الرهان
         startBtn.style.display = 'block';
         playControls.style.display = 'none';
         document.getElementById('cash-btn').style.display = 'none';
