@@ -3,94 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Win100 | Pro Poker Mobile</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap" rel="stylesheet">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Win100 | Pro Poker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&family=Orbitron:wght@700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        :root { --gold: #f59e0b; --bg: #064e3b; --card-bg: #fff; --felt: #065f46; }
+        :root { 
+            --gold: #f59e0b; --bg: #064e3b; --card-bg: #fff; --felt: #065f46; 
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
         
         body { 
             font-family: 'Cairo', sans-serif; background: var(--bg); color: white; 
-            height: 100dvh; display: flex; flex-direction: column; overflow: hidden; 
+            height: 100vh; height: -webkit-fill-available;
+            display: flex; flex-direction: column; overflow: hidden; 
+            position: fixed; width: 100%;
         }
 
-        /* هيدر بسيط وأنيق */
         .header { 
-            height: 60px; padding: 0 15px; display: flex; justify-content: space-between; 
-            align-items: center; background: rgba(0,0,0,0.5); border-bottom: 1px solid rgba(255,255,255,0.1);
-            flex-shrink: 0;
+            height: calc(60px + var(--safe-top)); 
+            padding: var(--safe-top) 15px 0 15px; 
+            display: flex; justify-content: space-between; align-items: center; 
+            background: rgba(0,0,0,0.7); border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0; z-index: 10;
         }
-        .balance-box { border: 1px solid var(--gold); padding: 4px 10px; border-radius: 10px; color: var(--gold); font-weight: 900; font-size: 14px; }
+        .brand { font-family: 'Orbitron', sans-serif; font-weight: 900; letter-spacing: 1px; }
+        .balance-box { border: 1.5px solid var(--gold); padding: 5px 12px; border-radius: 12px; color: var(--gold); font-weight: 900; font-size: 14px; background: rgba(0,0,0,0.3); }
 
-        /* منطقة الطاولة - مرنة جداً */
         .poker-table { 
             flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            background: radial-gradient(circle, var(--felt) 0%, var(--bg) 100%);
-            position: relative; padding: 10px; gap: 10px;
+            background: radial-gradient(circle, var(--felt) 0%, #042f24 100%);
+            position: relative; padding: 10px; gap: 20px;
         }
 
-        .section-label { font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; margin-bottom: 8px; text-align: center; font-weight: 700; }
+        .section-label { font-size: 12px; color: rgba(255,255,255,0.5); text-transform: uppercase; margin-bottom: 10px; text-align: center; font-weight: 900; letter-spacing: 1px; }
 
-        .cards-row { display: flex; gap: 10px; min-height: 100px; justify-content: center; align-items: center; width: 100%; }
+        .cards-row { display: flex; gap: 12px; min-height: 110px; justify-content: center; align-items: center; width: 100%; perspective: 1000px; }
 
         .card { 
-            width: 70px; height: 100px; background: var(--card-bg); border-radius: 10px; 
+            width: 75px; height: 110px; background: var(--card-bg); border-radius: 12px; 
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: #000; font-weight: 900; font-size: 20px; box-shadow: 0 6px 15px rgba(0,0,0,0.4);
-            transition: all 0.4s ease; position: relative; border: 1px solid #ddd;
+            color: #000; font-weight: 900; font-size: 22px; box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1); position: relative; border: 1px solid #eee;
+            backface-visibility: hidden;
         }
         
-        /* شكل ظهر الكارت */
         .card.hidden { 
             background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); 
             color: transparent; border: 2px solid #334155;
-            background-image: radial-gradient(#334155 1px, transparent 1px);
-            background-size: 10px 10px;
+            background-image: radial-gradient(#334155 1.5px, transparent 1.5px);
+            background-size: 8px 8px;
         }
         .card.red { color: #ef4444; }
-        .card span:last-child { font-size: 28px; line-height: 1; }
+        .card span:last-child { font-size: 32px; margin-top: -5px; }
 
         .status-msg { 
-            text-align: center; font-weight: 700; font-size: 14px; color: #fcd34d; 
-            padding: 10px; min-height: 50px; display: flex; align-items: center; justify-content: center;
+            text-align: center; font-weight: 700; font-size: 15px; color: #fcd34d; 
+            padding: 10px 20px; min-height: 60px; display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.2); border-radius: 50px;
         }
 
-        /* لوحة التحكم السفلية */
         .controls { 
-            background: #0f172a; padding: 15px 20px calc(15px + env(safe-area-inset-bottom));
-            border-radius: 25px 25px 0 0; display: flex; flex-direction: column; gap: 12px;
-            flex-shrink: 0; box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+            background: #0f172a; padding: 20px 20px calc(15px + var(--safe-bottom));
+            border-radius: 30px 30px 0 0; display: flex; flex-direction: column; gap: 12px;
+            flex-shrink: 0; box-shadow: 0 -10px 40px rgba(0,0,0,0.6);
+            width: 100%; max-width: 500px; margin: 0 auto;
         }
 
         .input-group { 
             background: #020617; border: 1px solid #1e293b; border-radius: 15px; 
-            display: flex; align-items: center; padding: 0 15px;
+            display: flex; align-items: center; padding: 0 5px;
         }
         input { 
             flex: 1; background: transparent; border: none; color: var(--gold); 
-            padding: 12px; text-align: center; font-weight: 900; font-size: 22px; outline: none; 
+            padding: 12px; text-align: center; font-weight: 900; font-size: 24px; outline: none; 
+            font-family: 'Orbitron';
         }
 
-        .action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         
         .btn { 
-            height: 55px; border-radius: 12px; border: none; font-weight: 900; 
-            font-size: 16px; cursor: pointer; transition: 0.2s; font-family: 'Cairo';
+            height: 58px; border-radius: 15px; border: none; font-weight: 900; 
+            font-size: 17px; cursor: pointer; transition: 0.2s; font-family: 'Cairo';
         }
-        .btn:active { transform: scale(0.96); }
+        .btn:active { transform: translateY(3px); }
 
-        .btn-deal { background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; grid-column: span 2; font-size: 18px; }
-        .btn-fold { background: #334155; color: white; }
-        .btn-call { background: #10b981; color: white; }
-        .btn:disabled { opacity: 0.3; filter: grayscale(1); }
+        .btn-deal { background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; grid-column: span 2; font-size: 19px; box-shadow: 0 4px 0 #b47b04; }
+        .btn-fold { background: #334155; color: white; box-shadow: 0 4px 0 #1e293b; }
+        .btn-call { background: #10b981; color: white; box-shadow: 0 4px 0 #065f46; }
+        .btn:disabled { opacity: 0.4; filter: grayscale(1); transform: none !important; box-shadow: none; }
 
+        .swal2-popup { border-radius: 25px !important; background: #111 !important; color: white !important; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div style="font-weight:900; letter-spacing: 1px;">POKER <span style="color:var(--gold)">LIVE</span></div>
+        <div class="brand">POKER <span style="color:var(--gold)">LIVE</span></div>
         <div class="balance-box" id="user-bal">0.00 EGP</div>
     </div>
 
@@ -126,8 +139,19 @@
     </div>
 
 <script type="module">
+    // --- سيستم التحديث اليومي لضمان آخر نسخة ---
+    (function() {
+        const lastUpdate = localStorage.getItem('last_poker_refresh');
+        const now = new Date().getTime();
+        const ONE_DAY = 24 * 60 * 60 * 1000; 
+        if (!lastUpdate || (now - lastUpdate > ONE_DAY)) {
+            localStorage.setItem('last_poker_refresh', now);
+            window.location.reload(true); 
+        }
+    })();
+
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-    import { getFirestore, doc, onSnapshot, updateDoc, increment, getDoc } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+    import { getFirestore, doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
 
     const firebaseConfig = {
@@ -144,14 +168,21 @@
     const suits = ['♠', '♣', '♥', '♦'];
     const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
     
-    let balance = 0, uid = "", currentBet = 0, isProcessing = false;
+    let balance = 0, uid = "", currentBet = 0, isProcessing = false, isPlaying = false;
 
     onAuthStateChanged(auth, user => {
         if (user) {
             uid = user.uid;
             onSnapshot(doc(db, "users", uid), d => {
-                balance = d.data()?.walletBalance || 0;
+                const data = d.data();
+                balance = data?.walletBalance || 0;
                 document.getElementById('user-bal').innerText = balance.toFixed(2) + " EGP";
+                
+                // تحديث النسخة إجباري (عن بعد)
+                const currentVersion = "1.1";
+                if (!isPlaying && data?.appVersion && data?.appVersion !== currentVersion) {
+                    window.location.reload(true);
+                }
             });
         }
     });
@@ -159,22 +190,23 @@
     function createCardUI(card) {
         const div = document.createElement('div');
         div.className = `card ${['♥', '♦'].includes(card.suit) ? 'red' : ''}`;
-        div.style.transform = "rotateY(90deg)"; // أنيميشن بسيط
+        div.style.transform = "rotateY(90deg)"; 
         div.innerHTML = `<span>${card.val}</span><span>${card.suit}</span>`;
-        setTimeout(() => div.style.transform = "rotateY(0deg)", 50);
+        setTimeout(() => div.style.transform = "rotateY(0deg)", 100);
         return div;
     }
 
     document.getElementById('deal-btn').onclick = async () => {
         if (isProcessing) return;
         const amt = parseFloat(document.getElementById('bet-amt').value);
-        if (amt > balance || amt <= 0) return Swal.fire("عفواً", "رصيدك لا يكفي!", "warning");
+        if (isNaN(amt) || amt <= 0) return Swal.fire("تنبيه", "أدخل مبلغاً صحيحاً", "warning");
+        if (amt > balance) return Swal.fire("عفواً", "رصيدك لا يكفي!", "error");
 
         isProcessing = true;
+        isPlaying = true;
         await updateDoc(doc(db, "users", uid), { walletBalance: increment(-amt) });
         currentBet = amt;
 
-        // توليد الأوراق
         const getCard = () => ({ val: values[Math.floor(Math.random() * 13)], suit: suits[Math.floor(Math.random() * 4)], rank: Math.floor(Math.random() * 13) });
         
         window.gameState = { 
@@ -182,7 +214,6 @@
             dealer: [getCard(), getCard()]
         };
 
-        // تحديث الواجهة
         const pRow = document.getElementById('player-cards');
         const dRow = document.getElementById('dealer-cards');
         pRow.innerHTML = ''; 
@@ -193,7 +224,7 @@
         document.getElementById('deal-btn').disabled = true;
         document.getElementById('fold-btn').disabled = false;
         document.getElementById('call-btn').disabled = false;
-        document.getElementById('status').innerText = "تم التوزيع. هل تكمل أم تنسحب؟";
+        document.getElementById('status').innerText = "تم التوزيع.. هل تكمل أم تنسحب؟";
         isProcessing = false;
     };
 
@@ -205,7 +236,6 @@
         dRow.innerHTML = '';
         gameState.dealer.forEach(c => dRow.appendChild(createCardUI(c)));
 
-        // Logic الفوز (مبسط)
         let pScore = gameState.player[0].rank + gameState.player[1].rank;
         if (gameState.player[0].val === gameState.player[1].val) pScore += 100;
 
@@ -226,20 +256,22 @@
             msg = "خسارة.. الموزع يربح!";
         }
 
-        await updateDoc(doc(db, "users", uid), { walletBalance: increment(winAmt) });
+        if(winAmt > 0) await updateDoc(doc(db, "users", uid), { walletBalance: increment(winAmt) });
         document.getElementById('status').innerHTML = `<span style="color:${winAmt > 0 ? '#10b981' : '#ef4444'}">${msg}</span>`;
         
-        setTimeout(resetUI, 1500);
+        setTimeout(resetUI, 2500);
         isProcessing = false;
     };
 
-    document.getElementById('fold-btn').onclick = () => {
+    document.getElementById('fold-btn').onclick = async () => {
+        if (isProcessing) return;
         document.getElementById('status').innerText = "انسحبت وخسرت نصف الرهان.";
-        updateDoc(doc(db, "users", uid), { walletBalance: increment(currentBet * 0.5) });
+        await updateDoc(doc(db, "users", uid), { walletBalance: increment(currentBet * 0.5) });
         resetUI();
     };
 
     function resetUI() {
+        isPlaying = false;
         document.getElementById('deal-btn').disabled = false;
         document.getElementById('fold-btn').disabled = true;
         document.getElementById('call-btn').disabled = true;
