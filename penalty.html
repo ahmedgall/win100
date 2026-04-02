@@ -3,108 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>VexaBet | Penalty Elite</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&family=Orbitron:wght@700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        :root { --gold: #f59e0b; --bg: #064e3b; --field: #166534; --danger: #ef4444; }
+        :root { 
+            --gold: #f59e0b; --bg: #042f24; --field: #166534; --danger: #ef4444; 
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
         
         body { 
             font-family: 'Cairo', sans-serif; background: var(--bg); color: white; 
-            height: 100dvh; display: flex; flex-direction: column; overflow: hidden; 
+            height: 100vh; height: -webkit-fill-available;
+            display: flex; flex-direction: column; overflow: hidden; 
+            position: fixed; width: 100%;
         }
 
         .header { 
-            height: 60px; padding: 0 15px; display: flex; justify-content: space-between; 
-            align-items: center; background: rgba(0,0,0,0.6); border-bottom: 2px solid var(--gold); z-index: 100;
+            height: calc(60px + var(--safe-top)); 
+            padding: var(--safe-top) 15px 0 15px; 
+            display: flex; justify-content: space-between; align-items: center; 
+            background: rgba(0,0,0,0.8); border-bottom: 2px solid var(--gold); z-index: 100;
         }
-        .balance-box { background: #020617; border: 1px solid var(--gold); padding: 5px 12px; border-radius: 12px; color: var(--gold); font-weight: 900; font-size: 14px; }
+        .brand { font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 18px; }
+        .balance-box { background: #020617; border: 1.5px solid var(--gold); padding: 5px 12px; border-radius: 12px; color: var(--gold); font-weight: 900; font-size: 14px; font-family: 'Orbitron'; }
 
         .pitch {
-            flex: 1; position: relative; background: radial-gradient(circle at bottom, var(--field) 0%, #022c22 100%);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            flex: 1; position: relative; 
+            background: radial-gradient(circle at bottom, var(--field) 0%, #022c22 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+            padding-bottom: 20px;
         }
 
-        /* المرمى والحارس */
+        .status-msg { 
+            position: absolute; top: 20px; text-align: center; font-size: 15px; 
+            color: #fff; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.3); padding: 5px 20px; border-radius: 20px;
+        }
+
+        /* المرمى */
         .goal-container {
-            position: relative; width: 92vw; max-width: 400px; aspect-ratio: 2.2/1; margin-top: -50px;
+            position: relative; width: 90vw; max-width: 450px; aspect-ratio: 2.2/1; 
+            margin-bottom: 120px;
         }
-        .goal-svg { width: 100%; height: 100%; filter: drop-shadow(0 0 10px rgba(255,255,255,0.1)); }
+        .goal-svg { width: 100%; height: 100%; filter: drop-shadow(0 0 15px rgba(255,255,255,0.2)); }
 
-        /* حارس المرمى SVG احترافي */
+        /* الحارس المحسن */
         .keeper-svg {
-            position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-            width: 22%; height: auto; z-index: 10; transition: all 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%);
+            width: 20%; height: auto; z-index: 10; 
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        /* مناطق اللمس الذكية */
+        /* مناطق التسديد */
         .shoot-zones {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: grid; grid-template-columns: 1fr 1fr 1fr; z-index: 40;
         }
-        .zone:active { background: rgba(255,255,255,0.1); }
+        .zone { transition: 0.2s; border-radius: 5px; }
+        .zone:active { background: rgba(255,255,255,0.15); border: 2px dashed var(--gold); }
 
         /* الكرة */
         .ball-svg {
-            position: absolute; bottom: 12%; left: 50%; width: 48px; height: 48px; z-index: 30;
+            position: absolute; bottom: 40px; left: 50%; width: 50px; height: 50px; z-index: 30;
             transform: translateX(-50%); transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
-            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5));
+            filter: drop-shadow(0 8px 15px rgba(0,0,0,0.6));
         }
 
-        /* بار القوة (خداع بصري للإثارة) */
+        /* بار القوة */
         .power-bar-container {
-            width: 60%; height: 6px; background: #020617; border-radius: 10px; margin-bottom: 20px; overflow: hidden; border: 1px solid rgba(255,255,255,0.2);
+            width: 150px; height: 6px; background: #020617; border-radius: 10px; 
+            margin-bottom: 15px; overflow: hidden; border: 1px solid rgba(255,255,255,0.2);
+            position: absolute; bottom: 100px;
         }
         .power-fill {
             width: 0%; height: 100%; background: linear-gradient(90deg, #22c55e, #eab308, #ef4444);
-            animation: powerLoop 1s infinite alternate linear;
+            animation: powerLoop 0.8s infinite alternate linear;
         }
         @keyframes powerLoop { from { width: 10%; } to { width: 100%; } }
 
-        /* لوحة التحكم السفلية */
+        /* التحكم */
         .controls { 
-            background: #0f172a; padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
-            border-radius: 30px 30px 0 0; box-shadow: 0 -10px 40px rgba(0,0,0,0.6); flex-shrink: 0;
+            background: #0f172a; padding: 20px 20px calc(15px + var(--safe-bottom));
+            border-radius: 30px 30px 0 0; box-shadow: 0 -10px 40px rgba(0,0,0,0.6); 
+            flex-shrink: 0; width: 100%; max-width: 500px; margin: 0 auto;
         }
         .input-wrapper { background: #020617; border: 2px solid #1e293b; border-radius: 15px; margin-bottom: 15px; display: flex; align-items: center; padding: 5px 15px; }
-        .input-wrapper input { flex: 1; background: transparent; border: none; color: var(--gold); font-size: 24px; font-weight: 900; text-align: center; outline: none; }
+        .input-wrapper input { flex: 1; background: transparent; border: none; color: var(--gold); font-size: 24px; font-weight: 900; text-align: center; outline: none; font-family: 'Orbitron'; }
         
         .btn-main { 
             width: 100%; height: 60px; background: linear-gradient(135deg, #f59e0b, #d97706); 
-            border: none; border-radius: 15px; color: #000; font-weight: 900; font-size: 18px;
-            box-shadow: 0 4px 0 #92400e; transition: 0.1s;
+            border: none; border-radius: 15px; color: #000; font-weight: 900; font-size: 19px;
+            box-shadow: 0 5px 0 #92400e; transition: 0.1s; font-family: 'Cairo';
         }
         .btn-main:active { transform: translateY(3px); box-shadow: none; }
-        .btn-main:disabled { opacity: 0.4; filter: grayscale(1); }
-
-        .status-msg { text-align: center; font-size: 13px; color: #94a3b8; margin-bottom: 10px; font-weight: 700; height: 20px; }
+        .btn-main:disabled { opacity: 0.5; filter: grayscale(1); transform: none !important; }
 
         /* الأنميشنز */
-        .goal-shake { animation: shake 0.15s 4; }
-        @keyframes shake { 0%, 100% { transform: translate(0,0); } 25% { transform: translate(-5px,0); } 75% { transform: translate(5px,0); } }
+        .goal-shake { animation: shake 0.2s 3; }
+        @keyframes shake { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+        
+        .swal2-popup { border-radius: 25px !important; background: #111 !important; color: white !important; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div style="font-weight:900; font-size: 20px;">VEXA<span style="color:var(--gold)">PENALTY</span></div>
+        <div class="brand">VEXA<span style="color:var(--gold)">BET</span></div>
         <div class="balance-box" id="user-bal">0.00 EGP</div>
     </div>
 
     <div class="pitch">
-        <div class="status-msg" id="status-text">سجل هدفاً واربح الضعف!</div>
+        <div class="status-msg" id="status-text">سجل واربح الضعف فوراً! ⚽</div>
         
-        <div class="power-bar-container" id="p-bar" style="visibility: hidden;">
+        <div class="power-bar-container" id="p-bar" style="display: none;">
             <div class="power-fill"></div>
         </div>
 
         <div class="goal-container" id="goal-area">
             <svg class="goal-svg" viewBox="0 0 400 170">
-                <path d="M5 170 L5 5 L395 5 L395 170" stroke="#fff" stroke-width="8" fill="none"/>
+                <path d="M5 170 L5 5 L395 5 L395 170" stroke="#fff" stroke-width="10" fill="none"/>
                 <defs>
-                    <pattern id="netGrid" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
-                        <path d="M 10 0 L 0 10 M 0 0 L 10 10" stroke="rgba(255,255,255,0.25)" stroke-width="0.5"/>
+                    <pattern id="netGrid" x="0" y="0" width="12" height="12" patternUnits="userSpaceOnUse">
+                        <path d="M 12 0 L 0 12 M 0 0 L 12 12" stroke="rgba(255,255,255,0.2)" stroke-width="0.8"/>
                     </pattern>
                 </defs>
                 <rect x="5" y="5" width="390" height="165" fill="url(#netGrid)"/>
@@ -117,15 +143,20 @@
             </div>
 
             <svg class="keeper-svg" viewBox="0 0 100 140" id="keeper">
-                <circle cx="50" cy="25" r="14" fill="#ef4444"/> <rect x="30" y="42" width="40" height="55" rx="8" fill="#ef4444"/> <path d="M15 45 L30 45 M70 45 L85 45" stroke="#ef4444" stroke-width="14" stroke-linecap="round"/> <path d="M35 95 L30 135 M65 95 L70 135" stroke="#ef4444" stroke-width="14" stroke-linecap="round"/> </svg>
+                <circle cx="50" cy="25" r="15" fill="#facc15"/> 
+                <rect x="30" y="45" width="40" height="55" rx="10" fill="#facc15"/> 
+                <path d="M15 50 L30 50 M70 50 L85 50" stroke="#facc15" stroke-width="14" stroke-linecap="round"/> 
+                <path d="M35 100 L30 135 M65 100 L70 135" stroke="#facc15" stroke-width="14" stroke-linecap="round"/> 
+            </svg>
         </div>
 
         <svg class="ball-svg" viewBox="0 0 50 50" id="ball">
-            <circle cx="25" cy="25" r="23" fill="#fff" stroke="#000" stroke-width="1.5"/>
-            <path d="M25 2 A23 23 0 0 1 48 25" stroke="#000" stroke-width="1" fill="none" opacity="0.3"/>
-            <circle cx="25" cy="25" r="7" fill="#000"/>
-            <circle cx="12" cy="12" r="3" fill="#000"/>
-            <circle cx="38" cy="38" r="3" fill="#000"/>
+            <circle cx="25" cy="25" r="23" fill="#fff" stroke="#000" stroke-width="2"/>
+            <circle cx="25" cy="25" r="8" fill="#000"/>
+            <circle cx="12" cy="12" r="4" fill="#000"/>
+            <circle cx="38" cy="38" r="4" fill="#000"/>
+            <circle cx="12" cy="38" r="4" fill="#000"/>
+            <circle cx="38" cy="12" r="4" fill="#000"/>
         </svg>
     </div>
 
@@ -133,10 +164,20 @@
         <div class="input-wrapper">
             <input type="number" id="bet-amt" value="10" inputmode="numeric">
         </div>
-        <button id="main-btn" class="btn-main" onclick="initRound()">ابدأ اللعب الآن ⚽</button>
+        <button id="main-btn" class="btn-main" onclick="initRound()">ركلة البداية ⚽</button>
     </div>
 
 <script type="module">
+    // --- سيستم التحديث الذاتي ---
+    (function() {
+        const lastUpd = localStorage.getItem('last_penalty_upd');
+        const now = new Date().getTime();
+        if (!lastUpd || (now - lastUpd > 86400000)) {
+            localStorage.setItem('last_penalty_upd', now);
+            window.location.reload(true);
+        }
+    })();
+
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
     import { getFirestore, doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
@@ -146,102 +187,102 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    let balance = 0, uid = "", currentBet = 0, isGameLive = false;
-    let winStreak = 0; // خوارزمية ذكية لمتابعة فوز اللاعب
+    let balance = 0, uid = "", currentBet = 0, isGameLive = false, winStreak = 0;
 
     onAuthStateChanged(auth, user => {
         if (user) {
             uid = user.uid;
             onSnapshot(doc(db, "users", uid), d => {
-                balance = d.data()?.walletBalance || 0;
+                const data = d.data();
+                balance = data?.walletBalance || 0;
                 document.getElementById('user-bal').innerText = balance.toFixed(2) + " EGP";
+                
+                // تحديث نسخة التطبيق من الفايرستور إذا لزم الأمر
+                if (!isGameLive && data?.appVersion === "force-reload") {
+                    window.location.reload(true);
+                }
             });
         }
     });
 
     window.initRound = () => {
         const amt = parseFloat(document.getElementById('bet-amt').value);
-        if (amt > balance || amt <= 0) return Swal.fire("رصيد ناقص", "اشحن محفظتك للمتابعة", "error");
+        if (amt > balance || amt <= 0) return Swal.fire("خطأ", "رصيدك غير كافٍ", "error");
 
         currentBet = amt;
         isGameLive = true;
         document.getElementById('main-btn').disabled = true;
         document.getElementById('zones').style.display = 'grid';
-        document.getElementById('p-bar').style.visibility = 'visible';
-        document.getElementById('status-text').innerText = "اختر زاوية التسديد بسرعة!";
-        if(navigator.vibrate) navigator.vibrate(40);
+        document.getElementById('p-bar').style.display = 'block';
+        document.getElementById('status-text').innerText = "سدد في زاوية صعبة! 🔥";
+        if(navigator.vibrate) navigator.vibrate(50);
     };
 
     window.logicShoot = async (playerTarget) => {
         if (!isGameLive) return;
         isGameLive = false;
         document.getElementById('zones').style.display = 'none';
-        document.getElementById('p-bar').style.visibility = 'hidden';
+        document.getElementById('p-bar').style.display = 'none';
 
-        // الخصم فوراً
+        // خصم الرهان فوراً
         await updateDoc(doc(db, "users", uid), { walletBalance: increment(-currentBet) });
 
-        // --- الخوارزمية الصايعة (The "Vexa" Logic) ---
-        // RTP يبدأ بـ 60% ويقل كل ما اللاعب يكسب ورا بعض
-        let baseChance = 0.60;
-        let finalWinChance = baseChance - (winStreak * 0.15); 
-        if (finalWinChance < 0.20) finalWinChance = 0.20; // أقل نسبة فوز 20%
-
-        const shouldWin = Math.random() < finalWinChance;
+        // خوارزمية RTP متغيرة: تبدأ بـ 65% وتقل 15% مع كل فوز متتالي
+        let winChance = Math.max(0.20, 0.65 - (winStreak * 0.15));
+        const shouldWin = Math.random() < winChance;
+        
         let keeperMove;
-
         if (shouldWin) {
-            // اللاعب هيكسب: الحارس يروح بعيد
-            const dirs = ['left', 'center', 'right'].filter(d => d !== playerTarget);
-            keeperMove = dirs[Math.floor(Math.random() * dirs.length)];
-            winStreak++; 
+            const others = ['left', 'center', 'right'].filter(d => d !== playerTarget);
+            keeperMove = others[Math.floor(Math.random() * others.length)];
+            winStreak++;
         } else {
-            // اللاعب هيخسر: الحارس يصدها "صقر"
             keeperMove = playerTarget;
-            winStreak = 0; // تصفير السلسلة عند الخسارة
+            winStreak = 0;
         }
-        // ------------------------------------------
 
         const k = document.getElementById('keeper');
         const b = document.getElementById('ball');
 
         // أنيميشن الحارس
-        if (keeperMove === 'left') k.style.transform = 'translateX(-180%) rotate(-20deg)';
-        else if (keeperMove === 'right') k.style.transform = 'translateX(80%) rotate(20deg)';
-        else k.style.transform = 'translateX(-50%) scale(1.1)';
+        if (keeperMove === 'left') k.style.transform = 'translateX(-190%) rotate(-30deg)';
+        else if (keeperMove === 'right') k.style.transform = 'translateX(90%) rotate(30deg)';
+        else k.style.transform = 'translateX(-50%) scale(1.15)';
 
-        // أنيميشن الكرة
-        let x = "-50%", y = "-58vh";
-        if (playerTarget === 'left') x = "-155%";
-        if (playerTarget === 'right') x = "55%";
+        // أنيميشن الكرة (حسابات فيزيائية للموبايل)
+        let tx = "-50%", ty = "-55vh", sc = "0.35";
+        if (playerTarget === 'left') tx = "-160%";
+        if (playerTarget === 'right') tx = "60%";
         
-        b.style.transform = `translate(${x}, ${y}) scale(0.35) rotate(1080deg)`;
+        b.style.transform = `translate(${tx}, ${ty}) scale(${sc}) rotate(720deg)`;
 
         setTimeout(async () => {
             const isGoal = playerTarget !== keeperMove;
             if (isGoal) {
-                const payout = currentBet * 1.85; // عائد مغري
+                const payout = currentBet * 1.90; // عائد مجزي 1.9x
                 await updateDoc(doc(db, "users", uid), { walletBalance: increment(payout) });
                 document.getElementById('goal-area').classList.add('goal-shake');
-                showResult('GOAL', `مبروك! ربحت ${payout.toFixed(2)} ج.م`, 'success');
+                
+                Swal.fire({
+                    title: 'جوووووووول! ⚽',
+                    text: `ربحت ${payout.toFixed(2)} ج.م`,
+                    icon: 'success',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
                 if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
             } else {
-                showResult('SAVED', 'الحارس كان أسرع منك المرة دي!', 'error');
+                Swal.fire({
+                    title: 'ضاعت! 🧤',
+                    text: 'الحارس تصدى للكرة ببراعة',
+                    icon: 'error',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
             }
             setTimeout(resetField, 1800);
         }, 500);
     };
-
-    function showResult(title, text, icon) {
-        Swal.fire({
-            title: title === 'GOAL' ? 'جووووول! ⚽' : 'ضاعت! 🧤',
-            text: text,
-            icon: icon,
-            timer: 1500,
-            showConfirmButton: false,
-            backdrop: `rgba(0,0,0,0.4)`
-        });
-    }
 
     function resetField() {
         const b = document.getElementById('ball');
@@ -250,7 +291,7 @@
         k.style.transform = 'translateX(-50%) rotate(0deg)';
         document.getElementById('goal-area').classList.remove('goal-shake');
         document.getElementById('main-btn').disabled = false;
-        document.getElementById('status-text').innerText = "سجل هدفاً واربح الضعف!";
+        document.getElementById('status-text').innerText = "سجل واربح الضعف فوراً! ⚽";
     }
 </script>
 </body>
