@@ -159,6 +159,15 @@
 </head>
 <body>
 
+
+
+
+
+
+
+
+    
+
     <div class="header">
         <div class="logo-area"><h1>WIN 100</h1></div>
         <div class="user-balance-top">
@@ -170,17 +179,142 @@
 
     <div class="container">
         
-        <div class="bonus-banner">
-            <div style="z-index: 1;">
-                <h2 style="margin:0; font-size: 18px;">مكافأة الإيداع الأول</h2>
-                <p style="margin:5px 0 0; font-size: 12px; opacity: 0.9;">احصل على 200% بونص فوري</p>
+      <div class="bet-shortcut-container">
+    <a href="al.html" class="bet-card-link">
+        <div class="bet-card-content">
+            <div class="bet-card-icon">
+                <i class="fas fa-futbol"></i>
             </div>
-            <button onclick="location.href='deposit.html'" style="background: white; border:none; padding:8px 15px; border-radius:12px; font-weight:900; font-size:12px; color: #78350f; z-index:1;">إيداع</button>
+            <div class="bet-card-text">
+                <span class="bet-label">متاح الآن</span>
+                <h2 class="bet-title">رهانات كرة القدم</h2>
+                <p class="bet-desc">الدوريات الكبرى • أفضل الأودز • دفع فوري</p>
+            </div>
+            <div class="bet-card-arrow">
+                <i class="fas fa-chevron-left"></i>
+            </div>
         </div>
+        <div class="shimmer"></div>
+    </a>
+</div>
+
+<style>
+    /* تنسيقات الزرار الملكي */
+    .bet-shortcut-container {
+        padding: 20px;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .bet-card-link {
+        display: block;
+        position: relative;
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        border-radius: 20px;
+        padding: 20px;
+        text-decoration: none;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    }
+
+    .bet-card-content {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .bet-card-icon {
+        background: rgba(245, 158, 11, 0.1);
+        width: 60px;
+        height: 60px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #f59e0b;
+        font-size: 28px;
+        border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    .bet-card-text {
+        flex: 1;
+    }
+
+    .bet-label {
+        background: #f59e0b;
+        color: #000;
+        font-size: 10px;
+        font-weight: 900;
+        padding: 2px 8px;
+        border-radius: 50px;
+        text-transform: uppercase;
+        display: inline-block;
+        margin-bottom: 5px;
+    }
+
+    .bet-title {
+        margin: 0;
+        color: #fff;
+        font-size: 18px;
+        font-weight: 900;
+    }
+
+    .bet-desc {
+        margin: 5px 0 0;
+        color: #94a3b8;
+        font-size: 12px;
+    }
+
+    .bet-card-arrow {
+        color: #f59e0b;
+        font-size: 20px;
+        transition: transform 0.3s;
+    }
+
+    /* تأثيرات عند التحويم أو اللمس */
+    .bet-card-link:hover, .bet-card-link:active {
+        transform: translateY(-5px);
+        border-color: #f59e0b;
+        box-shadow: 0 15px 30px rgba(245, 158, 11, 0.2);
+    }
+
+    .bet-card-link:hover .bet-card-arrow {
+        transform: translateX(-5px);
+    }
+
+    /* تأثير اللمعان (Shimmer) */
+    .shimmer {
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(245, 158, 11, 0.1),
+            transparent
+        );
+        transition: 0.5s;
+        z-index: 1;
+    }
+
+    .bet-card-link:hover .shimmer {
+        left: 100%;
+        transition: 0.8s;
+    }
+
+    /* أيقونات FontAwesome */
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+</style>
 
         <div class="section-title"><i class="fas fa-fire"></i> الألعاب الأكثر ربحاً</div>
         <div class="games-scroll-container">
-            <div class="game-card" onclick="location.href='CR.html'">
+            <div class="game-card" onclick="location.href='crash.html'">
                 <div class="game-img" style="background-image: url('الطياره.jpg');"><div class="multiplier-badge">HOT 🔥</div></div>
                 <div class="game-info"><h3>الطيار Aviator</h3><span>ربح خيالي x100</span></div>
             </div>
@@ -236,10 +370,17 @@
 
     </div>
 
+
+
+
+
+
+
+
     <nav class="bottom-nav">
         <a href="home.html" class="nav-item active"><i class="fas fa-house"></i><span>الرئيسية</span></a>
         <a href="wallet.html" class="nav-item"><i class="fas fa-wallet"></i><span>المحفظة</span></a>
-        <a href="rewards.html" class="nav-item"><i class="fas fa-gift"></i><span>هدايا</span></a>
+        <a href="gifts.html" class="nav-item"><i class="fas fa-gift"></i><span>هدايا</span></a>
         <a href="profile.html" class="nav-item"><i class="fas fa-user-gear"></i><span>حسابي</span></a>
     </nav>
 
@@ -276,7 +417,7 @@
 
 <div id="install-banner" style="display: none; position: fixed; bottom: 20px; left: 10px; right: 10px; background: #0f172a; border: 2px solid #f59e0b; border-radius: 15px; padding: 12px; z-index: 9999; align-items: center; justify-content: space-between; box-shadow: 0 10px 25px rgba(0,0,0,0.5); animation: slideUp 0.3s ease-out;">
     <div style="display: flex; align-items: center; gap: 12px;">
-        <img src="ic.png" width="45" height="45" style="border-radius: 10px;">
+        <img src="https://cdn-icons-png.flaticon.com/512/10300/10300301.png" width="45" height="45" style="border-radius: 10px;">
         <div style="text-align: right;">
             <div style="font-weight: 900; color: white; font-size: 16px;">Win100</div>
             <div style="font-size: 11px; color: #94a3b8;">ثبت التطبيق لتجربة أسرع ⚡</div>
@@ -337,63 +478,30 @@
   });
 </script>
 
-
-   
-<script>
-
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js"></script>
-
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyAzcP_T8x5ouwwKkhadtBTdsUxk3XqwJec",
-    authDomain: "vexa-4b2fb.firebaseapp.com",
-    projectId: "vexa-4b2fb",
-    storageBucket: "vexa-4b2fb.firebasestorage.app",
-    messagingSenderId: "977620445308",
-    appId: "1:977620445308:web:71e66418d95c43dc8881f9"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-  const messaging = firebase.messaging();
-
-  async function enableNotifications() {
-    try {
-      // انتظر حتى يكون السيرفس وركر جاهزاً
-      const registration = await navigator.serviceWorker.ready;
-      
-      // طلب التوكن (استبدل المفتاح باللي هتجيبه من فايربيز)
-      const currentToken = await messaging.getToken({ 
-        vapidKey: 'PASTE_YOUR_VAPID_KEY_HERE', 
-        serviceWorkerRegistration: registration 
-      });
-
-      if (currentToken) {
-          console.log('✅ تم الحصول على التوكن بنجاح يا إمبراطور:');
-          console.log(currentToken); // خده كوبي من هنا وجربه في صفحة الأدمن
-          
-          // نصيحة: هنا المفروض تبعت التوكن للـ Database بتاعتك عشان تخزنه مع بيانات اليوزر
-          // example: db.ref('users/' + userId).update({ fcmToken: currentToken });
-          
-      } else {
-          console.warn('❌ المستخدم رفض الإذن أو لم يتم توليد توكن.');
-      }
-    } catch (err) {
-      console.error('❌ حدث خطأ أثناء طلب الإذن:', err);
-    }
-  }
-
-  // تشغيل الطلب تلقائياً عند دخول الصفحة
-  window.onload = () => {
-    enableNotifications();
-  };
-</script>
-
-
-</script>
-
-
     
+<script>
+
+async function enableNotifications() {
+    const messaging = firebase.messaging();
+    try {
+        const currentToken = await messaging.getToken({ vapidKey: 'YOUR_VAPID_KEY' });
+        if (currentToken) {
+            console.log('Token record:', currentToken);
+            // أرسل الـ Token لقاعدة بياناتك عشان تعرف تبعت لليوزر ده بعينه
+            // db.ref('users/' + userId).update({ fcmToken: currentToken });
+        } else {
+            console.log('No registration token available. Request permission to generate one.');
+        }
+    } catch (err) {
+        console.log('An error occurred while retrieving token. ', err);
+    }
+}
+
+
+</script>
+
+
+
 
 </body>
 </html>
