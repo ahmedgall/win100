@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>سجل الرهانات | Win100 Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --gold: #f59e0b; --bg: #020617; --card: #1e293b66; --border: rgba(245, 158, 11, 0.3); }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: #fff; margin: 0; padding: 15px; padding-bottom: 50px; overflow-x: hidden; }
+        
+        /* الهيدر */
+        .nav-header { display: flex; align-items: center; margin-bottom: 25px; gap: 15px; position: sticky; top: 0; background: var(--bg); padding: 10px 0; z-index: 100; border-bottom: 1px solid var(--border); }
+        .back-link { color: var(--gold); text-decoration: none; font-size: 24px; padding: 5px; }
+
+        /* كارت الرهان */
+        .bet-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 20px; margin-bottom: 20px; position: relative; transition: 0.3s; }
+        
+        /* الحالات */
+        .status-tag { position: absolute; top: 15px; left: 15px; font-size: 11px; font-weight: 900; padding: 4px 12px; border-radius: 50px; text-transform: uppercase; }
+        .status-pending { background: #57534e; color: #fff; }
+        .status-won { background: #16a34a; color: #fff; box-shadow: 0 0 15px rgba(22, 163, 74, 0.3); }
+        .status-lost { background: #dc2626; color: #fff; }
+
+        /* تفاصيل الماتشات داخل الرهان */
+        .bet-details { margin-top: 15px; }
+        .match-row { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 10px 0; }
+        .match-row:last-child { border: none; }
+        .match-name { font-size: 12px; color: #94a3b8; display: block; margin-bottom: 4px; }
+        .pick-name { font-size: 15px; font-weight: bold; color: #fff; }
+        .pick-odds { color: var(--gold); font-size: 14px; margin-right: 8px; }
+
+        /* ملخص مالي */
+        .financial-summary { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 15px; margin-top: 15px; border: 1px solid rgba(255,255,255,0.05); }
+        .summary-box { text-align: center; }
+        .summary-box span { display: block; font-size: 10px; color: #64748b; margin-bottom: 5px; }
+        .summary-box b { font-size: 14px; color: #fff; }
+        .profit-text { color: #16a34a !important; font-weight: 900; }
+
+        #loader { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        .empty-state { text-align: center; margin-top: 100px; color: #475569; }
+    </style>
+</head>
+<body>
+
+    <div id="loader"><i class="fas fa-crown fa-spin" style="font-size: 40px; color: var(--gold);"></i></div>
+
+    <div class="nav-header">
+        <a href="al.html" class="back-link"><i class="fas fa-chevron-right"></i></a>
+        <h2 style="margin:0; font-size: 20px; font-weight: 900;">سجل مراهناتي</h2>
+    </div>
+
+    <div id="history-container">
+        </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+    import { getFirestore, collection, query, where, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+
+    const firebaseConfig = { apiKey: "AIzaSyAzcP_T8x5ouwwKkhadtBTdsUxk3XqwJec", authDomain: "vexa-4b2fb.firebaseapp.com", projectId: "vexa-4b2fb", appId: "1:977620445308:web:fec22230e1fbb30c8881f9" };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    onAuthStateChanged(auth, (user) => {
+        if(user) {
+            loadBetHistory(user.uid);
+        } else {
+            window.location.href = 'index.html';
+        }
+    });
+
+    function loadBetHistory(uid) {
+        const q = query(
+            collection(db, "myBets"), 
+            where("userId", "==", uid), 
+            orderBy("timestamp", "desc")
+        );
+
+        onSnapshot(q, (snapshot) => {
+            document.getElementById('loader').style.display = 'none';
+            const container = document.getElementById('history-container');
+            
+            if (snapshot.empty) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-history" style="font-size: 50px; margin-bottom: 15px; opacity: 0.2;"></i>
+                        <p>لا يوجد مراهنات مسجلة حتى الآن</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = snapshot.docs.map(doc => {
+                const bet = doc.data();
+                
+                // تحديد شكل الحالة
+                let statusLabel = 'قيد التنفيذ';
+                let statusClass = 'status-pending';
+                if(bet.status === 'won') { statusLabel = 'فائز ✅'; statusClass = 'status-won'; }
+                if(bet.status === 'lost') { statusLabel = 'خاسر ❌'; statusClass = 'status-lost'; }
+
+                const date = bet.timestamp ? bet.timestamp.toDate().toLocaleString('ar-EG', {
+                    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+                }) : 'جاري المعالجة...';
+
+                return `
+                    <div class="bet-card">
+                        <span class="status-tag ${statusClass}">${statusLabel}</span>
+                        <div style="font-size: 11px; color: #475569; margin-bottom: 10px;">${date}</div>
+                        
+                        <div class="bet-details">
+                            ${bet.items.map(item => `
+                                <div class="match-row">
+                                    <span class="match-name">${item.match}</span>
+                                    <span class="pick-name">${item.pick}</span>
+                                    <span class="pick-odds">@${item.price}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <div class="financial-summary">
+                            <div class="summary-box">
+                                <span>المبلغ</span>
+                                <b>${bet.amount} ج.م</b>
+                            </div>
+                            <div class="summary-box">
+                                <span>الأودز</span>
+                                <b>${bet.totalOdds}</b>
+                            </div>
+                            <div class="summary-box">
+                                <span>الربح المتوقع</span>
+                                <b class="profit-text">${(bet.amount * bet.totalOdds).toFixed(2)}</b>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        });
+    }
+</script>
+</body>
+</html>
