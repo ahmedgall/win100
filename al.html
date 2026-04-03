@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Win100 Ultra Pro | Official</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --gold: #f59e0b; --bg: #020617; --card: #1e293b66; --border: rgba(245, 158, 11, 0.3); }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: #fff; margin: 0; padding-bottom: 100px; }
+        .header { position: sticky; top: 0; background: rgba(2,6,23,0.95); padding: 15px; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); z-index: 1000; backdrop-filter: blur(10px); }
+        .bal-box { background: var(--card); border: 1px solid var(--gold); padding: 5px 15px; border-radius: 50px; color: var(--gold); font-weight: bold; }
+        .match-card { background: var(--card); margin: 12px; padding: 20px; border-radius: 20px; border: 1px solid var(--border); }
+        .market-box { background: rgba(255,255,255,0.03); border-radius: 15px; padding: 15px; margin-bottom: 15px; }
+        .market-title { color: var(--gold); font-weight: 900; margin-bottom: 12px; font-size: 14px; border-right: 3px solid var(--gold); padding-right: 8px; }
+        .odds-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 8px; }
+        .odd-btn { background: #0f172a; border: 1px solid var(--border); padding: 10px; border-radius: 10px; text-align: center; cursor: pointer; }
+        .odd-btn b { display: block; color: var(--gold); font-size: 16px; }
+        .fab-gold { position: fixed; bottom: 30px; right: 25px; width: 65px; height: 65px; background: var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(245,158,11,0.5); z-index: 2000; border: none; }
+        .sheet { position: fixed; bottom: -100%; left: 0; width: 100%; height: 85vh; background: #0f172a; border-top: 3px solid var(--gold); border-radius: 30px 30px 0 0; z-index: 3000; transition: 0.4s; padding: 20px; box-sizing: border-box; overflow-y: auto; }
+        .sheet.active { bottom: 0; }
+        .action-btn { background: var(--gold); color: #000; width: 100%; padding: 16px; border: none; border-radius: 15px; font-weight: 900; margin-top: 10px; }
+        .input-code { width: 100%; padding: 15px; background: #020617; border: 1px solid var(--border); border-radius: 12px; color: #fff; text-align: center; font-size: 18px; margin-bottom: 10px; }
+        #loader { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+    </style>
+</head>
+<body>
+
+    <div id="loader"><i class="fas fa-crown fa-spin" style="font-size: 40px; color: var(--gold);"></i></div>
+
+    <div class="header">
+        <div style="font-weight: 900; font-size: 20px; color: var(--gold);">WIN100 PRO</div>
+        <div class="bal-box" id="user-balance">0.00 ج.م</div>
+    </div>
+
+    <div id="matches-container"></div>
+
+    <button class="fab-gold" onclick="openSlip()">
+        <div style="position:absolute; top:0; right:0; background:#ef4444; width:22px; height:22px; border-radius:50%; font-size:12px; display:flex; align-items:center; justify-content:center;" id="slip-count">0</div>
+        <i class="fas fa-receipt" style="font-size:24px; color:#000;"></i>
+    </button>
+
+    <div id="main-sheet" class="sheet">
+        <div style="text-align:center; padding:10px;" onclick="closeSheet()"><i class="fas fa-chevron-down" style="color:#475569; font-size:24px;"></i></div>
+        <div id="sheet-body"></div>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+    import { getFirestore, doc, onSnapshot, updateDoc, increment, collection, addDoc, serverTimestamp, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+
+    const firebaseConfig = { apiKey: "AIzaSyAzcP_T8x5ouwwKkhadtBTdsUxk3XqwJec", authDomain: "vexa-4b2fb.firebaseapp.com", projectId: "vexa-4b2fb", appId: "1:977620445308:web:fec22230e1fbb30c8881f9" };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let currentSlip = [];
+    const API_KEY = '4a63ffac5fe58a9ec09b22e305c61c02';
+
+    onAuthStateChanged(auth, (user) => {
+        if(user) {
+            onSnapshot(doc(db, "users", user.uid), (snap) => {
+                if(snap.exists()) document.getElementById('user-balance').innerText = snap.data().walletBalance.toLocaleString() + " ج.م";
+                document.getElementById('loader').style.display = 'none';
+            });
+            fetchMatches();
+        } else { window.location.href = 'index.html'; }
+    });
+
+    async function fetchMatches() {
+        const res = await fetch(`https://api.the-odds-api.com/v4/sports/soccer_epl/odds/?apiKey=${API_KEY}&regions=eu&markets=h2h,totals`);
+        const data = await res.json();
+        document.getElementById('matches-container').innerHTML = data.map(m => `
+            <div class="match-card" onclick='showMarkets(${JSON.stringify(m)})'>
+                <div style="text-align:center; font-size:11px; color:var(--gold); margin-bottom:10px;">${new Date(m.commence_time).toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'})}</div>
+                <div style="display:flex; justify-content:space-around; align-items:center;">
+                    <b style="width:40%; text-align:center;">${m.home_team}</b>
+                    <span style="color:var(--gold)">VS</span>
+                    <b style="width:40%; text-align:center;">${m.away_team}</b>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    const translate = (val) => {
+        const dict = { 'h2h': 'النتيجة النهائية', 'totals': 'الأهداف (أكبر/أصغر)', 'Over': 'أكثر من', 'Under': 'أقل من', 'Draw': 'تعادل' };
+        return dict[val] || val;
+    };
+
+    window.showMarkets = (m) => {
+        const body = document.getElementById('sheet-body');
+        document.getElementById('main-sheet').classList.add('active');
+        let html = `<h3 style="text-align:center;">${m.home_team} vs ${m.away_team}</h3>`;
+        m.bookmakers[0].markets.forEach(market => {
+            html += `
+                <div class="market-box">
+                    <div class="market-title">${translate(market.key)}</div>
+                    <div class="odds-grid">
+                        ${market.outcomes.map(o => `
+                            <div class="odd-btn" onclick="addToSlip('${m.home_team} vs ${m.away_team}', '${translate(o.name)}', ${o.price})">
+                                <span style="font-size:12px; color:#94a3b8;">${translate(o.name)}</span>
+                                <b>${o.price}</b>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>`;
+        });
+        body.innerHTML = html + `<button class="action-btn" onclick="openSlip()">عرض القسيمة (${currentSlip.length})</button>`;
+    };
+
+    window.addToSlip = (match, pick, price) => {
+        currentSlip.push({ match, pick, price });
+        document.getElementById('slip-count').innerText = currentSlip.length;
+        alert("تمت الإضافة ✅");
+    };
+
+    window.openSlip = () => {
+        const body = document.getElementById('sheet-body');
+        document.getElementById('main-sheet').classList.add('active');
+        
+        if(currentSlip.length === 0) {
+            body.innerHTML = `
+                <div style="text-align:center; padding:30px;">
+                    <i class="fas fa-ticket-alt" style="font-size:50px; color:#1e293b; margin-bottom:20px;"></i>
+                    <p style="color:#94a3b8;">القسيمة فارغة حالياً</p>
+                    <div style="background:var(--card); padding:20px; border-radius:20px; border:1px solid var(--border); margin-top:20px;">
+                        <input type="text" id="coupon-load-input" class="input-code" placeholder="حط كود القسيمة هنا">
+                        <button class="action-btn" onclick="loadCoupon()">تحميل القسيمة الآن</button>
+                    </div>
+                </div>`;
+            return;
+        }
+
+        const totalOdds = currentSlip.reduce((acc, curr) => acc * curr.price, 1).toFixed(2);
+        body.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h3 style="margin:0">قسيمة الرهان</h3>
+                <button onclick="copySlipCode()" style="background:#334155; color:#fff; border:none; padding:8px 12px; border-radius:8px; font-size:12px;"><i class="fas fa-share"></i> نسخ الكود</button>
+            </div>
+            ${currentSlip.map((s, i) => `
+                <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:15px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                    <div><b>${s.match}</b><br><small style="color:var(--gold)">${s.pick}</small></div>
+                    <div style="display:flex; align-items:center; gap:10px;"><b>${s.price}</b> <i class="fas fa-trash" onclick="removeBet(${i})" style="color:#ef4444"></i></div>
+                </div>
+            `).join('')}
+            <div style="background:var(--card); padding:15px; border-radius:15px; border:1px solid var(--gold); margin-top:20px;">
+                <div style="display:flex; justify-content:space-between; font-weight:bold;"><span>إجمالي الأودز:</span><span style="color:var(--gold)">${totalOdds}</span></div>
+                <input type="number" id="bet-amt" placeholder="مبلغ الرهان ج.م" style="width:100%; margin:15px 0; padding:15px; background:#000; border:1px solid #334155; border-radius:12px; color:#fff; text-align:center; font-size:18px;">
+                <button class="action-btn" onclick="confirmBet()">تأكيد الرهان والخصم</button>
+            </div>`;
+    };
+
+    window.copySlipCode = async () => {
+        const code = "W100-" + Math.random().toString(36).substr(2, 4).toUpperCase();
+        await setDoc(doc(db, "coupons", code), { items: currentSlip });
+        navigator.clipboard.writeText(code);
+        alert("تم نسخ الكود: " + code);
+    };
+
+    window.loadCoupon = async () => {
+        const code = document.getElementById('coupon-load-input').value.toUpperCase().trim();
+        const snap = await getDoc(doc(db, "coupons", code));
+        if(snap.exists()) {
+            currentSlip = snap.data().items;
+            document.getElementById('slip-count').innerText = currentSlip.length;
+            openSlip();
+            alert("تم التحميل بنجاح 🎯");
+        } else { alert("الكود غلط يا بطل"); }
+    };
+
+    window.removeBet = (i) => { currentSlip.splice(i,1); document.getElementById('slip-count').innerText = currentSlip.length; openSlip(); };
+    window.closeSheet = () => document.getElementById('main-sheet').classList.remove('active');
+
+    window.confirmBet = async () => {
+        const amt = parseFloat(document.getElementById('bet-amt').value);
+        if(!amt || amt < 5) return alert("دخل مبلغ صح!");
+        const userRef = doc(db, "users", auth.currentUser.uid);
+        const userSnap = await getDoc(userRef);
+        if(userSnap.data().walletBalance >= amt) {
+            await updateDoc(userRef, { walletBalance: increment(-amt) });
+            alert("تم الرهان بنجاح! 💸");
+            currentSlip = []; document.getElementById('slip-count').innerText = 0; closeSheet();
+        } else { alert("رصيدك لا يكفي!"); }
+    };
+</script>
+</body>
+</html>
